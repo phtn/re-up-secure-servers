@@ -27,7 +27,7 @@ func CreateToken(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var response = service.CreateCustomToken(uid, r.Context(), app)
+	var response = service.CreateToken(uid, r.Context(), app)
 	utils.JsonResponse(w, response)
 	log.Println(response)
 
@@ -47,6 +47,24 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var response = service.GetUser(r.Context(), app, uid)
+	utils.JsonResponse(w, response)
+
+}
+
+func VerifyIDToken(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var idToken models.IdToken
+	err = json.Unmarshal(body, &idToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var response = service.VerifyIDToken(r.Context(), app, idToken)
 	utils.JsonResponse(w, response)
 
 }

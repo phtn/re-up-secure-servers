@@ -1,17 +1,24 @@
 package repository
 
-const (
-	ColorLogStart = "\033[38;5;60m"
-	ColorDark     = "\033[38;5;235m"
-	ColorCode     = "\033[38;5;153m"
-	ColorResp     = "\033[38;5;150m"
-	ColorReset    = "\033[0m"
-	ChatInit      = "\n\033[38;5;38m✨ \033[0m"
-)
+type Color string
 
 const (
-	Success = "success"
-	Failed  = "failed"
-	Pending = "pending"
-	Error   = "error"
+	Start   = "\033[38;5;60m"
+	Success = "\033[38;5;150m"
+	Warn    = "\033[38;5;13m"
+	Dark    = "\033[38;5;235m"
+	Code    = "\033[38;5;153m"
+	Error   = "\033[38;5;216m"
+	Bright  = "\033[38;5;229m"
+	Reset   = "\033[0m"
+)
+
+type Method string
+
+const (
+	Get    Method = "get"
+	Post   Method = "post"
+	Put    Method = "put"
+	Delete Method = "delete"
+	Patch  Method = "patch"
 )

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fast/internal/models"
+	"fast/internal/repository"
 	"fast/pkg/utils"
 	"log"
 
@@ -10,57 +11,74 @@ import (
 	"firebase.google.com/go/v4/auth"
 )
 
-func CreateCustomToken(uid models.Uid, ctx context.Context, app *firebase.App) string {
+const (
+	GET   = "get"
+	POST  = "post"
+	PATCH = "patch"
+)
+
+func CreateToken(uid models.Uid, ctx context.Context, app *firebase.App) string {
+	var f = "createToken"
 
 	client, err := app.Auth(context.Background())
 	if err != nil {
-		utils.Err("Error getting auth client %s: %v\n", "[CreateCustomToken]", err)
+		utils.ErrLog(POST, f, err)
 	}
 
 	token, err := client.CustomToken(context.Background(), uid.UID)
 	if err != nil {
-		log.Fatalf("Error creating custom token for user %s: %v\n", uid, err)
+		utils.ErrLog(POST, f, err)
 	}
 
-	utils.Ok("post", "createToken", token)
+	if len(token) >= 8 {
+		utils.OkLog(POST, f, uid.UID+string(" · "+repository.Bright)+token[:16]+string(repository.Reset))
+	}
 	return token
 
 }
 
-func VerifyIDToken(ctx context.Context, app *firebase.App, idToken string) *auth.Token {
+func VerifyIDToken(ctx context.Context, app *firebase.App, idToken models.IdToken) *auth.Token {
+	var f = "verifyIDToken"
 
 	client, err := app.Auth(context.Background())
 	if err != nil {
 		log.Fatalf("Error getting auth client: %v\n", err)
 	}
 
-	token, err := client.VerifyIDToken(ctx, idToken)
+	token, err := client.VerifyIDToken(ctx, idToken.Token)
 	if err != nil {
-		log.Fatalf("Error verifying ID token: %v\n", err)
+		utils.ErrLog(POST, f, err)
 	}
 
+	if token != nil {
+		utils.OkLog(POST, f, repository.Bright+"nice"+string(repository.Reset))
+	}
 	return token
 
 }
 
 func GetUser(ctx context.Context, app *firebase.App, uid models.Uid) *auth.UserRecord {
+	var f = "getUser"
 
 	client, err := app.Auth(context.Background())
 	if err != nil {
-		log.Fatalf("Error getting auth client: %v\n", err)
+		utils.ErrLog(POST, f, err)
 	}
 
 	usr, err := client.GetUser(ctx, uid.UID)
 	if err != nil {
-		log.Fatalf("Error getting user %s: %v \n", uid.UID, err)
+		utils.NilLog(POST, f, err)
 	}
 
-	utils.Ok("get", "getUser", uid.UID)
+	if usr != nil {
+		utils.OkLog(POST, f, uid.UID[:8])
+	}
 	return usr
 
 }
 
 func CreateUser(ctx context.Context, client *auth.Client) *auth.UserRecord {
+	var f = "createUser"
 
 	params := (&auth.UserToCreate{}).
 		Email("user@example.com").
@@ -73,9 +91,9 @@ func CreateUser(ctx context.Context, client *auth.Client) *auth.UserRecord {
 
 	usr, err := client.CreateUser(ctx, params)
 	if err != nil {
-		log.Fatalf("error creating user: %v\n", err)
+		utils.ErrLog(POST, f, err)
 	}
 
-	log.Printf("Successfully created user: %v\n", usr)
+	utils.OkLog(POST, f, usr)
 	return usr
 }
