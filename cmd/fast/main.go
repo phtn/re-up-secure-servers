@@ -17,6 +17,9 @@ func main() {
 	http.HandleFunc("/auth/getUser", api.GetUser)
 	http.HandleFunc("/auth/createToken", api.CreateToken)
 	http.HandleFunc("/auth/verifyIdToken", api.VerifyIDToken)
+	http.HandleFunc("/auth/retrieveToken", api.RetrieveToken)
+	http.HandleFunc("/redis/storeVal", api.StoreVal)
+	http.HandleFunc("/redis/retrieveVal", api.RetrieveVal)
 
 	// SERVER START
 	// fmt.Println(repository.ColorCode + "𝙍𝙀-𝙐𝙋.𝙋𝙃 𝖢𝖫𝖮𝖴𝖣 𝖲𝖤𝖱𝖵𝖨𝖢𝖤𝖲" + repository.ColorLogStart)
@@ -25,7 +28,7 @@ func main() {
 	err := http.ListenAndServe(addr, nil)
 
 	if err != nil {
-		fmt.Println(repository.Error + "server failed to start")
+		fmt.Println(repository.Error+"server failed to start", err)
 	}
 }
 

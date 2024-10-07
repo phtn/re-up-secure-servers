@@ -37,7 +37,7 @@ func CreateToken(uid models.Uid, ctx context.Context, app *firebase.App) string 
 
 }
 
-func VerifyIDToken(ctx context.Context, app *firebase.App, idToken models.IdToken) string {
+func VerifyIDToken(ctx context.Context, app *firebase.App, idToken *models.IdToken) string {
 	var f = "verifyIdToken"
 
 	client, err := app.Auth(context.Background())
@@ -47,13 +47,12 @@ func VerifyIDToken(ctx context.Context, app *firebase.App, idToken models.IdToke
 
 	k := utils.Guid()
 	t, err := client.VerifyIDToken(ctx, idToken.Token)
+
 	if err != nil {
 		utils.ErrLog(POST, f, err)
-		rdb.StoreToken(k, t)
-		utils.OkLog(POST, f, repository.Bright+"token stored"+string(repository.Reset))
 	}
 
-	return k
+	return rdb.StoreToken(k, t)
 
 }
 

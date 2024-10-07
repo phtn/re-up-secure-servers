@@ -40,6 +40,12 @@ func ErrLog(r string, f string, err error) {
 	log.Printf(Warn+"failed"+Dark+"  ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
 }
 
+func CheckErrLog(r string, f string, err error) {
+	if err != nil {
+		log.Printf(Warn+"failed"+Dark+"  ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
+	}
+}
+
 func NilLog(r string, f string, err error) {
 	log.Printf(Warn+"NULL"+Dark+" ·· ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
 }

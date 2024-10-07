@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fast/config"
 	"fast/internal/models"
+	"fast/internal/rdb"
 	"fast/internal/service"
 	"fast/pkg/utils"
 	"fmt"
@@ -61,12 +62,46 @@ func VerifyIDToken(w http.ResponseWriter, r *http.Request) {
 	var idToken models.IdToken
 	err = json.Unmarshal(body, &idToken)
 	if err != nil {
-		log.Fatal(err)
+		utils.ErrLog("json", "verifyIdToken", err)
 	}
 
-	var response = service.VerifyIDToken(r.Context(), app, idToken)
-	utils.JsonResponse(w, response)
+	utils.JsonResponse(w, service.VerifyIDToken(r.Context(), app, &idToken))
+}
 
+func RetrieveToken(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+	utils.CheckErrLog("redis", "retrieveToken", err)
+
+	var k models.AuthKey
+	err = json.Unmarshal(body, &k)
+	utils.CheckErrLog("json", "retrieveToken", err)
+
+	utils.JsonResponse(w, rdb.RetrieveToken(k.FastAuthKey))
+}
+
+func StoreVal(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+	utils.CheckErrLog("redis", "storeVal", err)
+
+	var kv models.KV
+	err = json.Unmarshal(body, &kv)
+	utils.CheckErrLog("json", "storeVal", err)
+
+	utils.JsonResponse(w, rdb.StoreVal(kv.Key, kv.Value))
+}
+
+func RetrieveVal(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+	utils.CheckErrLog("redis", "retrieveVal", err)
+
+	var kv models.KV
+	err = json.Unmarshal(body, &kv)
+	utils.CheckErrLog("json", "retrieveVal", err)
+
+	utils.JsonResponse(w, rdb.RetrieveVal(kv.Key))
 }
 
 func XXX(w http.ResponseWriter, r *http.Request) {

@@ -12,7 +12,7 @@ import (
 
 var rdb = config.LoadConfig().Rdb
 
-func StoreToken(k string, t *auth.Token) {
+func StoreToken(k string, t *auth.Token) string {
 
 	ctx := context.Background()
 
@@ -29,7 +29,7 @@ func StoreToken(k string, t *auth.Token) {
 	if err == nil {
 		utils.OkLog("set", "storeToken", "all good")
 	}
-
+	return k
 }
 
 func RetrieveToken(k string) *auth.Token {
@@ -37,21 +37,51 @@ func RetrieveToken(k string) *auth.Token {
 	ctx := context.Background()
 
 	val, err := rdb.Get(ctx, k).Result()
-	if err != nil {
-		utils.ErrLog("get", "retrieveToken", err)
-	}
+	utils.CheckErrLog("get", "retrieveToken", err)
 
 	var token *auth.Token
 
 	err = json.Unmarshal([]byte(val), &token)
-	if err != nil {
-		utils.ErrLog("json", "retrieveToken", err)
-	}
+	utils.CheckErrLog("json", "retrieveToken", err)
 
 	if err == nil {
 		utils.OkLog("get", "retrieveToken", "all good")
 	}
 
 	return token
+}
 
+func StoreVal(key string, v interface{}) string {
+
+	ctx := context.Background()
+
+	value, err := json.Marshal(v)
+	utils.CheckErrLog("json", "storeToken", err)
+
+	err = rdb.Set(ctx, key, value, 0).Err()
+	utils.CheckErrLog("set", "storeToken", err)
+
+	if err == nil {
+		utils.OkLog("set", "storeToken", "all good")
+	}
+	return key
+}
+
+func RetrieveVal(key string) interface{} {
+
+	ctx := context.Background()
+
+	val, err := rdb.Get(ctx, key).Result()
+	utils.CheckErrLog("get", "retrieveToken", err)
+
+	var v *interface{}
+
+	err = json.Unmarshal([]byte(val), &v)
+	utils.CheckErrLog("json", "retrieveToken", err)
+
+	if err == nil {
+		utils.OkLog("redis", "retrieveVal", "all good")
+	}
+
+	return v
 }

@@ -17,34 +17,29 @@ type Config struct {
 	Rdb           *redis.Client
 }
 
-func init() {
-	initialiazeFirebase()
-	initializeRedis()
-}
-
 func LoadConfig() Config {
 
-	addr, exists := os.LookupEnv("ADDR")
+	// addr, exists := os.LookupEnv("ADDR")
+
+	// if !exists {
+	// 	addr = ":1981"
+	// }
 
 	app := initialiazeFirebase()
 	rdb := initializeRedis()
 
-	if !exists {
-		addr = ":1981"
-	}
-
-	return Config{ServerAddress: addr, App: app, Rdb: rdb}
+	return Config{ServerAddress: ":1981", App: app, Rdb: rdb}
 }
 
 func initializeRedis() *redis.Client {
-	addr, exist := os.LookupEnv("REDIS_PORT")
+	adr, exist := os.LookupEnv("REDIS_PORT")
 
 	if !exist {
-		addr = "localhost:6379"
+		adr = "localhost:6379"
 	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: addr,
+		Addr: adr,
 	})
 	return rdb
 }
