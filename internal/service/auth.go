@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"fast/internal/models"
+	"fast/internal/rdb"
 	"fast/internal/repository"
 	"fast/pkg/utils"
-	"log"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -37,23 +37,23 @@ func CreateToken(uid models.Uid, ctx context.Context, app *firebase.App) string 
 
 }
 
-func VerifyIDToken(ctx context.Context, app *firebase.App, idToken models.IdToken) *auth.Token {
-	var f = "verifyIDToken"
+func VerifyIDToken(ctx context.Context, app *firebase.App, idToken models.IdToken) string {
+	var f = "verifyIdToken"
 
 	client, err := app.Auth(context.Background())
-	if err != nil {
-		log.Fatalf("Error getting auth client: %v\n", err)
-	}
-
-	token, err := client.VerifyIDToken(ctx, idToken.Token)
 	if err != nil {
 		utils.ErrLog(POST, f, err)
 	}
 
-	if token != nil {
-		utils.OkLog(POST, f, repository.Bright+"nice"+string(repository.Reset))
+	k := utils.Guid()
+	t, err := client.VerifyIDToken(ctx, idToken.Token)
+	if err != nil {
+		utils.ErrLog(POST, f, err)
+		rdb.StoreToken(k, t)
+		utils.OkLog(POST, f, repository.Bright+"token stored"+string(repository.Reset))
 	}
-	return token
+
+	return k
 
 }
 

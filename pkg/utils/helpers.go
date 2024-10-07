@@ -2,8 +2,11 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -33,11 +36,12 @@ func OkLog(r string, f string, p interface{}) {
 	log.Printf(Success+"success"+Dark+" ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %s\n", p)
 }
 
-func ErrLog(r string, f string, e error) {
-	log.Printf(Warn+"failed"+Dark+"  ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", e)
+func ErrLog(r string, f string, err error) {
+	log.Printf(Warn+"failed"+Dark+"  ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
 }
-func NilLog(r string, f string, e error) {
-	log.Printf(Warn+"NULL"+Dark+" ·· ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", e)
+
+func NilLog(r string, f string, err error) {
+	log.Printf(Warn+"NULL"+Dark+" ·· ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
 }
 
 func JsonResponse(w http.ResponseWriter, data interface{}) {
@@ -49,4 +53,13 @@ func JsonResponse(w http.ResponseWriter, data interface{}) {
 
 	_, err = w.Write(jsonData)
 	ErrHandler(w, err)
+}
+
+func s() string {
+	return strings.ToLower(fmt.Sprintf("%04x", rand.Intn(0x10000))[1:])
+}
+
+func Guid() string {
+	return fmt.Sprintf("%s%s-%s-%s-%s-%s%s%s",
+		s(), s(), s(), s(), s(), s(), s(), s())
 }
