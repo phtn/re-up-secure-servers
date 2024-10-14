@@ -12,44 +12,39 @@ import (
 
 const (
 	// COLORS
-	Start = "\033[38;5;60m"
-	ClrOk = "\033[38;5;150m"
-	ClrWn = "\033[38;5;13m"
-	ClrDk = "\033[38;5;235m"
+	Start = "\033[38;5;235m"
+	ClrOk = "\033[38;5;35m"
+	ClrWn = "\033[38;5;216m"
+	ClrNl = "\033[38;5;175m"
+	ClrDk = "\033[38;5;248m"
 	ClrCd = "\033[38;5;153m"
-	ClrEr = "\033[38;5;216m"
-	ClrBt = "\033[38;5;229m"
-	Reset = "\033[0m"
+	ClrEr = "\033[38;5;168m"
+	ClrBt = "\033[38;5;59m"
+	Reset = "\033[250m"
 	// LOG PREFIX
 	Success = "success"
-	Failed  = "failed"
-	Inform  = "info"
-	Null    = "NULL"
-	FATAL   = "fatal"
+	Warning = "warning"
+	Failed  = "failed "
+	Inform  = "info   "
+	Null    = "NULL   "
+	FATAL   = "fatal  "
 )
 
 var success = ClrOk + Success + ClrDk
-var dm = Reset + "➜" + Start
-var failed = ClrWn + Failed + ClrDk
-var fatal = ClrWn + FATAL + ClrDk
-var null = ClrWn + Null + ClrDk
+var failed = ClrEr + Failed + ClrDk
+var fatal = ClrEr + FATAL + ClrDk
+var warning = ClrWn + Warning + ClrDk
+var null = ClrNl + Null + ClrDk
 var info = ClrCd + Inform + ClrDk
+var dm = ClrBt + "ꔷ" + Start
 
-func Err_(msg string, sub string, err error) {
-	log.Fatalf(msg, "%s: %v\n", sub, err)
-}
-
+// ➜
 func ErrHandler(w http.ResponseWriter, err error) error {
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	return err
-}
-
-func Ok(r string, f string, p interface{}) {
-	log.Printf("%s %s %s %s %s\n", success, r, f, dm, p)
-	return
 }
 
 func Err(r string, f string, err error) {
@@ -60,6 +55,30 @@ func Err(r string, f string, err error) {
 func ErrLog(r string, f string, err error) {
 	if err != nil {
 		log.Printf("%s %s %s %s %v\n", failed, r, f, dm, err)
+		return
+	}
+}
+
+func HttpError(w http.ResponseWriter, m string, err error) {
+	if err != nil {
+		http.Error(w, m, http.StatusInternalServerError)
+	}
+}
+
+func Warn(r string, f string, p interface{}) {
+	log.Printf("%s %s %s %s %s\n", warning, r, f, dm, p)
+	return
+}
+
+func Ok(r string, f string, p interface{}) {
+	log.Printf("%s %s %s %s %s\n", success, r, f, dm, p)
+	return
+}
+
+func PostMethodOnly(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		Info("method", "verifyIdToken", r.Method)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 }

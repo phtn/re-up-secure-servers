@@ -31,11 +31,11 @@ func eqc(k string, verified bool, t *auth.Token) models.VResult {
 	}
 }
 
-func VerifyIdToken(ctx context.Context, app *firebase.App, v models.VerifyToken) models.VResult {
+func VerifyIdToken(ctx context.Context, fire *firebase.App, v models.VerifyToken) models.VResult {
 	var f, r = "verifyIdToken", POST
 
 	utils.Info(v.IDToken[:8], v.Email, v.UID)
-	client, err := app.Auth(context.Background())
+	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
 
 	k := shield.NewKey(v.Email)
@@ -49,10 +49,10 @@ func VerifyIdToken(ctx context.Context, app *firebase.App, v models.VerifyToken)
 	return eqc(k, verified, t)
 }
 
-func VerifyAuthKey(ctx context.Context, app *firebase.App, v models.VerifyWithAuthKey) models.VResult {
+func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithAuthKey) models.VResult {
 	var r, f = POST, "verifyAuthKey"
 
-	client, err := app.Auth(context.Background())
+	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
 
 	k := v.AuthKey
@@ -77,10 +77,10 @@ func VerifyAuthKey(ctx context.Context, app *firebase.App, v models.VerifyWithAu
 
 }
 
-func CreateToken(uid models.Uid, ctx context.Context, app *firebase.App) string {
+func CreateToken(uid models.Uid, ctx context.Context, fire *firebase.App) string {
 	var f, r = "createToken", POST
 
-	client, err := app.Auth(context.Background())
+	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
 
 	token, err := client.CustomToken(context.Background(), uid.UID)
@@ -92,10 +92,10 @@ func CreateToken(uid models.Uid, ctx context.Context, app *firebase.App) string 
 	return token
 }
 
-func GetUser(ctx context.Context, app *firebase.App, uid models.Uid) *auth.UserRecord {
+func GetUser(ctx context.Context, fire *firebase.App, uid models.Uid) *auth.UserRecord {
 	var f, r = "getUser", POST
 
-	client, err := app.Auth(context.Background())
+	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
 
 	usr, err := client.GetUser(ctx, uid.UID)

@@ -13,6 +13,13 @@ import (
 
 var rdb = config.LoadConfig().Rdbs
 
+func Ping() interface{} {
+	ctx := context.Background()
+	ping := rdb.Ping(ctx)
+	utils.Ok("redis", "ping", ping)
+	return ping
+}
+
 func RDBC() interface{} {
 	start := time.Now()
 	r, f := "rdb", "conn"

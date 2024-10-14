@@ -3,6 +3,8 @@ package main
 import (
 	"fast/api"
 	"fast/config"
+	"fast/internal/models"
+	"fast/internal/rdb"
 	"fast/internal/repository"
 	"fast/pkg/utils"
 	"fmt"
@@ -13,25 +15,42 @@ func main() {
 
 	addr := config.LoadConfig().Addr
 
-	http.HandleFunc(api.AuthRootPath, api.RDBC)
-	http.HandleFunc(api.GetUserPath, api.GetUser)
-	http.HandleFunc(api.CreateTokenPath, api.CreateToken)
-	http.HandleFunc(api.VerifyIdTokenPath, api.VerifyIdToken)
-	http.HandleFunc(api.VerifyAuthKeyPath, api.VerifyAuthKey)
+	mux := http.NewServeMux()
+
+	middlewares := []api.Middleware{
+		api.AuthMiddleware,
+		api.CorsMiddleware,
+	}
+
+	mux.HandleFunc(api.AuthRootPath, api.Chain(api.Rdbc, middlewares...))
+	mux.HandleFunc(api.GetUserPath, api.Chain(api.GetUser, middlewares...))
+	mux.HandleFunc(api.CreateTokenPath, api.Chain(api.CreateToken, middlewares...))
+	mux.HandleFunc(api.VerifyIdTokenPath, api.Chain(api.VerifyIdToken, middlewares...))
+	mux.HandleFunc(api.VerifyAuthKeyPath, api.Chain(api.VerifyAuthKey, middlewares...))
 
 	// DEV-ROUTES
-	http.HandleFunc(api.DevSetPath, api.DevSet)
-	http.HandleFunc(api.DevGetPath, api.DevGet)
+	mux.HandleFunc(api.DevSetPath, api.Chain(api.DevSet, middlewares...))
+	mux.HandleFunc(api.DevGetPath, api.Chain(api.DevGet, middlewares...))
 
-	utils.Ok("server", "boot", "system-online")
-	fmt.Println("")
-	// SERVER START
+	server := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
 	fmt.Println(repository.Code + "\n     ⟢   ╭" + repository.Dark + " ╮" + repository.Reset + "     𝗿𝗲-𝘂𝗽.𝗽𝗵 " + repository.Code)
 	fmt.Println(repository.Reset + " ⟢     ╭◜" + repository.Code + "╰" + repository.Black + "⟜" + repository.Dark + "╯" + repository.Dark + "◝╮" + repository.Code + "   𝚜𝚎𝚌𝚞𝚛𝚎 ⛌ 𝚜𝚎𝚛𝚟𝚎𝚛𝚜" + repository.Start)
 	fmt.Println("")
-	err := http.ListenAndServe(addr, nil)
 
-	utils.Fatal("server", "boot", err)
+	// TEST //
+
+	models.Ping()
+	rdb.Ping()
+
+	// END TEST //
+
+	// SERVER START
+	utils.Fatal("server", "boot", server.ListenAndServe())
+	utils.Ok("server", "boot", "system-online")
 }
 
 /*
