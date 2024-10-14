@@ -70,8 +70,27 @@ func Warn(r string, f string, p interface{}) {
 	return
 }
 
+func WarnLog(r string, f string, p interface{}, err error) {
+	if err == nil {
+		log.Printf("%s %s %s %s %s %v\n", warning, r, f, dm, p, err)
+		return
+	}
+}
+
 func Ok(r string, f string, p interface{}) {
 	log.Printf("%s %s %s %s %s\n", success, r, f, dm, p)
+	return
+}
+
+func OkLog(r string, f string, p interface{}, err error) {
+	if err == nil {
+		log.Printf("%s %s %s %s %s %v\n", success, r, f, dm, p, err)
+		return
+	}
+}
+
+func Info(r string, f string, p interface{}) {
+	log.Printf("%s %s %s %s %s\n", info, r, f, dm, p)
 	return
 }
 
@@ -88,17 +107,6 @@ func Fatal(r string, f string, err error) {
 		log.Printf("%s %s %s %s %v\n", fatal, r, f, dm, err)
 	}
 	return
-}
-
-func OkLog(r string, f string, p interface{}, err error) {
-	if err == nil {
-		log.Printf("%s %s %s %s %s %v\n", success, r, f, dm, p, err)
-	}
-	return
-}
-
-func Info(r string, f string, p interface{}) {
-	log.Printf("%s %s %s %s %s\n", info, r, f, dm, p)
 }
 
 func NullLog(r string, f string, err error) {

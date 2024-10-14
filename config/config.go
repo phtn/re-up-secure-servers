@@ -47,8 +47,6 @@ func init() {
 	rdbs = initializeRedis()
 	db = initialiazeDB()
 
-	defer db.Close()
-
 }
 
 func LoadConfig() *Config {

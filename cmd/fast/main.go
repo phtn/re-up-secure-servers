@@ -42,10 +42,8 @@ func main() {
 	fmt.Println("")
 
 	// TEST //
-
 	models.Ping()
 	rdb.Ping()
-
 	// END TEST //
 
 	// SERVER START

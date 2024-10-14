@@ -13,17 +13,24 @@ var (
 	ctx = context.Background()
 )
 
-func Ping() {
+func Ping() interface{} {
+
+	start := time.Now()
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
 	err := db.PingContext(ctx)
-	utils.ErrLog(r, "ctx-down", err)
-	utils.Ok(r, "ctx-status", "up")
+	utils.WarnLog(r, "ping", "down", err)
+	utils.Ok(r, "ping", "up")
 
-	err = db.Ping()
-	utils.ErrLog(r, "ping-down", err)
-	utils.Ok(r, "ping", "pong")
+	elapsed := time.Now().Sub(start) / time.Millisecond
+
+	defer db.Close()
+	return map[string]interface{}{
+		"sys":     "turso",
+		"elapsed": elapsed,
+		"unit":    "ms",
+	}
 }
 
 func GetAccountAPIKey(apiKey string) (*Account, error) {

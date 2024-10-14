@@ -14,10 +14,17 @@ import (
 var rdb = config.LoadConfig().Rdbs
 
 func Ping() interface{} {
+	start := time.Now()
 	ctx := context.Background()
 	ping := rdb.Ping(ctx)
 	utils.Ok("redis", "ping", ping)
-	return ping
+	elapsed := time.Now().Sub(start) / time.Millisecond
+	response := map[string]interface{}{
+		"sys":     "redis",
+		"elapsed": elapsed,
+		"unit":    "ms",
+	}
+	return response
 }
 
 func RDBC() interface{} {

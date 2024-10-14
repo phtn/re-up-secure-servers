@@ -144,8 +144,11 @@ func CorsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func Rdbc(w http.ResponseWriter, r *http.Request) {
-	data := rdb.Ping()
-	utils.JsonResponse(w, data)
+	turso := models.Ping()
+	redis := rdb.Ping()
+	utils.JsonResponse(w, map[string]interface{}{
+		"turso": turso, "redis": redis,
+	})
 }
 
 func VerifyIdToken(w http.ResponseWriter, r *http.Request) {
