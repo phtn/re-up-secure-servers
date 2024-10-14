@@ -2,54 +2,50 @@ package config
 
 import (
 	"context"
+	"fast/pkg/utils"
 	"log"
 	"os"
 	"path/filepath"
 
 	firebase "firebase.google.com/go/v4"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/api/option"
 )
 
 type Config struct {
-	ServerAddress string
-	App           *firebase.App
-	Rdb           *redis.Client
+	Addr string
+	Fire *firebase.App
+	Rdbs *redis.Client
 }
 
 func LoadConfig() Config {
 
-	// addr, exists := os.LookupEnv("ADDR")
+	addr := os.Getenv("RE_UP_ADDR_PORT")
 
-	// if !exists {
-	// 	addr = ":1981"
-	// }
+	fire := initialiazeFirebase()
+	rdbs := initializeRedis()
 
-	app := initialiazeFirebase()
-	rdb := initializeRedis()
-
-	return Config{ServerAddress: ":1981", App: app, Rdb: rdb}
+	return Config{Addr: addr, Fire: fire, Rdbs: rdbs}
 }
 
 func initializeRedis() *redis.Client {
-	adr, exist := os.LookupEnv("REDIS_PORT")
 
-	if !exist {
-		adr = "localhost:6379"
-	}
+	rdbs := os.Getenv("RDB_SERV")
+	host := os.Getenv("RDB_HOST")
+	port := os.Getenv("RDB_PORT")
+	pass := os.Getenv("RDB_PASS")
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr: adr,
-	})
+	opt, err := redis.ParseURL(rdbs + pass + host + port)
+	utils.ErrLog("rdb", "config", err)
+
+	rdb := redis.NewClient(opt)
 	return rdb
 }
 
 func initialiazeFirebase() *firebase.App {
 
 	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatal("Error getting current working directory", err)
-	}
+	utils.ErrLog("fs", "cwd", err)
 
 	pathToFile, exists := os.LookupEnv("SA_FILEPATH")
 	if !exists {
@@ -61,9 +57,8 @@ func initialiazeFirebase() *firebase.App {
 	opt := option.WithCredentialsFile(sa)
 
 	app, err := firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
-		log.Fatal("Error initializing app", err)
-	}
+	utils.ErrLog("init", "firebase", err)
+
 	return app
 
 }

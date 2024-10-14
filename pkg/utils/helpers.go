@@ -7,20 +7,35 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
-	Start   = "\033[38;5;60m"
-	Success = "\033[38;5;150m"
-	Warn    = "\033[38;5;13m"
-	Dark    = "\033[38;5;235m"
-	Code    = "\033[38;5;153m"
-	Error   = "\033[38;5;216m"
-	Bright  = "\033[38;5;229m"
-	Reset   = "\033[0m"
+	// COLORS
+	Start = "\033[38;5;60m"
+	ClrOk = "\033[38;5;150m"
+	ClrWn = "\033[38;5;13m"
+	ClrDk = "\033[38;5;235m"
+	ClrCd = "\033[38;5;153m"
+	ClrEr = "\033[38;5;216m"
+	ClrBt = "\033[38;5;229m"
+	Reset = "\033[0m"
+	// LOG PREFIX
+	Success = "success"
+	Failed  = "failed"
+	Inform  = "info"
+	Null    = "NULL"
+	FATAL   = "fatal"
 )
 
-func Err(msg string, sub string, err error) {
+var success = ClrOk + Success + ClrDk
+var dm = Reset + "➜" + Start
+var failed = ClrWn + Failed + ClrDk
+var fatal = ClrWn + FATAL + ClrDk
+var null = ClrWn + Null + ClrDk
+var info = ClrCd + Inform + ClrDk
+
+func Err_(msg string, sub string, err error) {
 	log.Fatalf(msg, "%s: %v\n", sub, err)
 }
 
@@ -32,22 +47,43 @@ func ErrHandler(w http.ResponseWriter, err error) error {
 	return err
 }
 
-func OkLog(r string, f string, p interface{}) {
-	log.Printf(Success+"success"+Dark+" ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %s\n", p)
+func Ok(r string, f string, p interface{}) {
+	log.Printf("%s %s %s %s %s\n", success, r, f, dm, p)
+	return
+}
+
+func Err(r string, f string, err error) {
+	log.Printf("%s %s %s %s %v\n", failed, r, f, dm, err)
+	return
 }
 
 func ErrLog(r string, f string, err error) {
-	log.Printf(Warn+"failed"+Dark+"  ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
-}
-
-func CheckErrLog(r string, f string, err error) {
 	if err != nil {
-		log.Printf(Warn+"failed"+Dark+"  ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
+		log.Printf("%s %s %s %s %v\n", failed, r, f, dm, err)
+		return
 	}
 }
 
-func NilLog(r string, f string, err error) {
-	log.Printf(Warn+"NULL"+Dark+" ·· ৷ "+Code+r+Dark+" ৷ "+Reset+f+Start+": %v\n", err)
+func Fatal(r string, f string, err error) {
+	if err != nil {
+		log.Printf("%s %s %s %s %v\n", fatal, r, f, dm, err)
+	}
+	return
+}
+
+func OkLog(r string, f string, p interface{}, err error) {
+	if err == nil {
+		log.Printf("%s %s %s %s %s %v\n", success, r, f, dm, p, err)
+	}
+	return
+}
+
+func Info(r string, f string, p interface{}) {
+	log.Printf("%s %s %s %s %s\n", info, r, f, dm, p)
+}
+
+func NullLog(r string, f string, err error) {
+	log.Printf("%s %s %s %s %v\n", null, r, f, dm, err)
 }
 
 func JsonResponse(w http.ResponseWriter, data interface{}) {
@@ -68,4 +104,10 @@ func s() string {
 func Guid() string {
 	return fmt.Sprintf("%s%s-%s-%s-%s-%s%s%s",
 		s(), s(), s(), s(), s(), s(), s(), s())
+}
+
+func RandIdx(n int) int {
+	src := rand.NewSource(time.Now().UnixNano())
+	rand.New(src)
+	return rand.Intn(n)
 }

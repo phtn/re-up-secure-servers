@@ -4,38 +4,44 @@ import (
 	"fast/api"
 	"fast/config"
 	"fast/internal/repository"
+	"fast/pkg/utils"
 	"fmt"
 	"net/http"
 )
 
 func main() {
-	fmt.Println(repository.Code + "\n ᜍ      ᜁ      ᜂ     ᜉ      ᜑ")
 
-	addr := config.LoadConfig().ServerAddress
+	addr := config.LoadConfig().Addr
 
-	http.HandleFunc("/auth", api.XXX)
-	http.HandleFunc("/auth/getUser", api.GetUser)
-	http.HandleFunc("/auth/createToken", api.CreateToken)
-	http.HandleFunc("/auth/verifyIdToken", api.VerifyIDToken)
-	http.HandleFunc("/auth/retrieveToken", api.RetrieveToken)
-	http.HandleFunc("/redis/storeVal", api.StoreVal)
-	http.HandleFunc("/redis/retrieveVal", api.RetrieveVal)
+	http.HandleFunc(api.AuthRootPath, api.RDBC)
+	http.HandleFunc(api.GetUserPath, api.GetUser)
+	http.HandleFunc(api.CreateTokenPath, api.CreateToken)
+	http.HandleFunc(api.VerifyIdTokenPath, api.VerifyIdToken)
+	http.HandleFunc(api.VerifyAuthKeyPath, api.VerifyAuthKey)
 
+	// DEV-ROUTES
+	http.HandleFunc(api.DevSetPath, api.DevSet)
+	http.HandleFunc(api.DevGetPath, api.DevGet)
+
+	utils.Ok("server", "boot", "system-online")
+	fmt.Println("")
 	// SERVER START
-	// fmt.Println(repository.ColorCode + "𝙍𝙀-𝙐𝙋.𝙋𝙃 𝖢𝖫𝖮𝖴𝖣 𝖲𝖤𝖱𝖵𝖨𝖢𝖤𝖲" + repository.ColorLogStart)
-	fmt.Println(repository.Reset + " 𝙧𝙚-𝙪𝙥.𝙥𝙝 " + repository.Code + " secure" + repository.Dark + "྾" + repository.Code + "servers" + repository.Dark + "  (v1)" + repository.Start)
+	fmt.Println(repository.Code + "\n     ⟢   ╭" + repository.Dark + " ╮" + repository.Reset + "     𝗿𝗲-𝘂𝗽.𝗽𝗵 " + repository.Code)
+	fmt.Println(repository.Reset + " ⟢     ╭◜" + repository.Code + "╰" + repository.Black + "⟜" + repository.Dark + "╯" + repository.Dark + "◝╮" + repository.Code + "   𝚜𝚎𝚌𝚞𝚛𝚎 ⛌ 𝚜𝚎𝚛𝚟𝚎𝚛𝚜" + repository.Start)
 	fmt.Println("")
 	err := http.ListenAndServe(addr, nil)
 
-	if err != nil {
-		fmt.Println(repository.Error+"server failed to start", err)
-	}
+	utils.Fatal("server", "boot", err)
 }
 
 /*
-྾
-ᜑ
-𝙧𝙚-𝙪𝙥.𝙥𝙝  𝗐 𝖾 𝖻  𝗌 𝖾 𝗋 𝗏 𝗂 𝖼 𝖾 𝗌
-ꔷ
-頻
+   ╭ ╮
+ ╭◜╰ ╯◝╮
+𝚜𝚎𝚌𝚞𝚛𝚎
+𝚜𝚎𝚛𝚟𝚎𝚛𝚜
+𝗿𝗲-𝘂𝗽.𝗽𝗵
+𝗐 𝖾 𝖻  𝗌 𝖾 𝗋 𝗏 𝗂 𝖼 𝖾 𝗌
+◜頻ꔷ⏠⛃◝◟◞─⛌྾
+
+// fmt.Println(repository.Code + "\n ᜍ      ᜁ      ᜂ     ᜉ      ᜑ")
 */

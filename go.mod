@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	firebase.google.com/go/v4 v4.14.1
-	github.com/go-redis/redis/v8 v8.11.5
+	github.com/redis/go-redis/v9 v9.6.1
 	google.golang.org/api v0.170.0
 )
 

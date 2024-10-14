@@ -5,6 +5,7 @@ import (
 	"fast/internal/models"
 	"fast/internal/rdb"
 	"fast/internal/repository"
+	"fast/internal/shield"
 	"fast/pkg/utils"
 
 	firebase "firebase.google.com/go/v4"
@@ -17,63 +18,93 @@ const (
 	PATCH = "patch"
 )
 
-func CreateToken(uid models.Uid, ctx context.Context, app *firebase.App) string {
-	var f = "createToken"
+func eqc(k string, verified bool, t *auth.Token) models.VResult {
+	if !verified {
+		return models.VResult{
+			Verified: verified,
+		}
+	}
+	return models.VResult{
+		Key:      k,
+		Verified: verified,
+		Exp:      int16(t.Expires),
+	}
+}
+
+func VerifyIdToken(ctx context.Context, app *firebase.App, v models.VerifyToken) models.VResult {
+	var f, r = "verifyIdToken", POST
+
+	utils.Info(v.IDToken[:8], v.Email, v.UID)
+	client, err := app.Auth(context.Background())
+	utils.ErrLog(r, f, err)
+
+	k := shield.NewKey(v.Email)
+	t, err := client.VerifyIDToken(ctx, v.IDToken)
+	utils.ErrLog(r, f, err)
+
+	verified := t.UID == v.UID
+	utils.Info("verify", "token", verified)
+
+	rdb.StoreToken(k, f, t)
+	return eqc(k, verified, t)
+}
+
+func VerifyAuthKey(ctx context.Context, app *firebase.App, v models.VerifyWithAuthKey) models.VResult {
+	var r, f = POST, "verifyAuthKey"
 
 	client, err := app.Auth(context.Background())
-	if err != nil {
-		utils.ErrLog(POST, f, err)
+	utils.ErrLog(r, f, err)
+
+	k := v.AuthKey
+	token, err := rdb.RetrieveToken(k)
+	utils.ErrLog(r, f, err)
+
+	verified := false
+
+	if token == nil {
+		t, err := client.VerifyIDToken(ctx, v.IDToken)
+		utils.ErrLog(r, f, err)
+		utils.OkLog(r, f, "verified", err)
+
+		verified = t.UID == v.UID
+		return eqc(k, verified, t)
 	}
 
-	token, err := client.CustomToken(context.Background(), uid.UID)
-	if err != nil {
-		utils.ErrLog(POST, f, err)
-	}
+	verified = token.UID == v.UID
+	utils.Ok("verify", "token", verified)
 
-	if len(token) >= 8 {
-		utils.OkLog(POST, f, uid.UID+string(" · "+repository.Bright)+token[:16]+string(repository.Reset))
-	}
-	return token
+	return eqc(k, verified, token)
 
 }
 
-func VerifyIDToken(ctx context.Context, app *firebase.App, idToken *models.IdToken) string {
-	var f = "verifyIdToken"
+func CreateToken(uid models.Uid, ctx context.Context, app *firebase.App) string {
+	var f, r = "createToken", POST
 
 	client, err := app.Auth(context.Background())
-	if err != nil {
-		utils.ErrLog(POST, f, err)
+	utils.ErrLog(r, f, err)
+
+	token, err := client.CustomToken(context.Background(), uid.UID)
+	utils.ErrLog(r, f, err)
+
+	if len(token) >= 8 {
+		utils.Ok(r, f, uid.UID+string(" · "+repository.Bright)+token[:16]+string(repository.Reset))
 	}
-
-	k := utils.Guid()
-	t, err := client.VerifyIDToken(ctx, idToken.Token)
-
-	if err != nil {
-		utils.ErrLog(POST, f, err)
-	}
-
-	return rdb.StoreToken(k, t)
-
+	return token
 }
 
 func GetUser(ctx context.Context, app *firebase.App, uid models.Uid) *auth.UserRecord {
-	var f = "getUser"
+	var f, r = "getUser", POST
 
 	client, err := app.Auth(context.Background())
-	if err != nil {
-		utils.ErrLog(POST, f, err)
-	}
+	utils.ErrLog(r, f, err)
 
 	usr, err := client.GetUser(ctx, uid.UID)
-	if err != nil {
-		utils.NilLog(POST, f, err)
-	}
+	utils.ErrLog(r, f, err)
 
 	if usr != nil {
-		utils.OkLog(POST, f, uid.UID[:8])
+		utils.Ok(POST, f, uid.UID[:8])
 	}
 	return usr
-
 }
 
 func CreateUser(ctx context.Context, client *auth.Client) *auth.UserRecord {
@@ -89,10 +120,8 @@ func CreateUser(ctx context.Context, client *auth.Client) *auth.UserRecord {
 		Disabled(false)
 
 	usr, err := client.CreateUser(ctx, params)
-	if err != nil {
-		utils.ErrLog(POST, f, err)
-	}
+	utils.ErrLog(POST, f, err)
 
-	utils.OkLog(POST, f, usr)
+	utils.Ok(POST, f, usr)
 	return usr
 }
