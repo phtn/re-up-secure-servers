@@ -9,15 +9,13 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"fast/internal/models"
 	"fast/pkg/utils"
 	"io"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var r = "encrypt"
@@ -80,6 +78,14 @@ func issuerIds() []string {
 	return ids
 }
 
+func NewClaimsKey(i string) string {
+	sep := "--"
+	src := uuid.New().String()
+	pfx := EncodeBase64([]byte(src))[:16]
+	key := pfx + sep + i + sep + "cc"
+	return key
+}
+
 func NewKey(i string) string {
 	sep := "--"
 	ids := issuerIds()
@@ -112,50 +118,4 @@ func DecodeBase64(s string) []byte {
 	key, err := base64.StdEncoding.DecodeString(s)
 	utils.ErrLog("base64", "decode", err)
 	return key
-}
-
-func NewBearerToken(user models.Account, key []byte) (string, error) {
-	now := time.Now()
-	claims := models.CustomClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
-			Issuer:    "Re-up Secure Servers",
-			Subject:   user.UID,
-			Audience:  []string{"Re-up Secure Servers Clients"},
-		},
-		Email: user.Email,
-		UID:   user.UID,
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(key)
-}
-
-func GenerateAccessToken(user models.Account, key []byte) (string, error) {
-	claims := jwt.RegisteredClaims{
-		Subject:   user.UID,
-		Issuer:    "re-up.ph secure servers",
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		NotBefore: jwt.NewNumericDate(time.Now()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
-		Audience:  []string{"Re-up Secure Servers Clients"},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(key)
-}
-
-func GenerateRefreshToken(user models.Account, key []byte) (string, error) {
-	claims := jwt.RegisteredClaims{
-		Subject:   user.UID,
-		Issuer:    "re-up.ph secure servers",
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		NotBefore: jwt.NewNumericDate(time.Now()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * 7 * time.Hour)),
-		Audience:  []string{"Re-up Secure Servers Clients"},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(key)
 }

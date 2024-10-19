@@ -43,14 +43,14 @@ func VerifyIdToken(ctx context.Context, fire *firebase.App, v models.VerifyToken
 	utils.ErrLog(r, f, err)
 
 	verified := t.UID == v.UID
-	utils.Info("verify", "token", verified)
+	utils.Info("verif", "id_token", verified)
 
 	rdb.StoreToken(k, f, t)
 	return eqc(k, verified, t)
 }
 
 func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithAuthKey) models.VResult {
-	var r, f = POST, "verifyAuthKey"
+	var r, f = POST, "authk"
 
 	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
@@ -71,10 +71,46 @@ func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithA
 	}
 
 	verified = token.UID == v.UID
-	utils.Ok("verify", "token", verified)
+	utils.Ok("verif", "id_token", verified)
 
 	return eqc(k, verified, token)
+}
 
+func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bool {
+	var r, f = "verif", "admin"
+
+	client, err := fire.Auth(context.Background())
+	utils.ErrLog(r, f, err)
+
+	if v.IDToken == "" {
+		return false
+	}
+
+	t, err := client.VerifyIDToken(ctx, v.IDToken)
+	utils.ErrLog(r, f, err)
+
+	verified := t.UID == v.UID
+	with_claims := false
+	claims := t.Claims
+	if custom_claims, ok := claims["manager"]; ok {
+		if custom_claims.(bool) {
+			utils.Ok("claim", "manager", "ok")
+			return verified && ok
+		}
+		with_claims = ok
+		return ok
+	}
+	if admin_claims, ok := claims["admin"]; ok {
+		if admin_claims.(bool) {
+			utils.Ok("claim", "admin", "ok")
+			return verified && ok
+		}
+		with_claims = ok
+		return ok
+	}
+
+	utils.Warn(r, f, verified && with_claims)
+	return verified && with_claims
 }
 
 func CreateToken(uid models.Uid, ctx context.Context, fire *firebase.App) string {
@@ -87,7 +123,7 @@ func CreateToken(uid models.Uid, ctx context.Context, fire *firebase.App) string
 	utils.ErrLog(r, f, err)
 
 	if len(token) >= 8 {
-		utils.Ok(r, f, uid.UID+string(" · "+repository.Bright)+token[:16]+string(repository.Reset))
+		utils.Ok(r, f, uid.UID+string(" · "+repository.ClrBt)+token[:16]+string(repository.Reset))
 	}
 	return token
 }

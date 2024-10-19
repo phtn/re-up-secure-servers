@@ -3,15 +3,23 @@ package repository
 type Color string
 
 const (
-	Start   = "\033[38;5;60m"
-	Success = "\033[38;5;150m"
-	Warn    = "\033[38;5;13m"
-	Dark    = "\033[38;5;235m"
-	Black   = "\033[38;5;233m"
-	Code    = "\033[38;5;153m"
-	Error   = "\033[38;5;216m"
-	Bright  = "\033[38;5;229m"
-	Reset   = "\033[0m"
+	// COLORS
+	Start = "\033[38;5;235m"
+	ClrOk = "\033[38;5;35m"
+	ClrWn = "\033[38;5;216m"
+	ClrNl = "\033[38;5;175m"
+	ClrDk = "\033[38;5;248m"
+	ClrCd = "\033[38;5;153m"
+	ClrEr = "\033[38;5;168m"
+	ClrBt = "\033[38;5;59m"
+	Reset = "\033[250m"
+	// LOG PREFIX
+	Success = "success"
+	Warning = "warning"
+	Failed  = "failed "
+	Inform  = "info   "
+	Null    = "NULL   "
+	FATAL   = "fatal  "
 )
 
 type Method string

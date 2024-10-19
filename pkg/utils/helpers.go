@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -27,7 +28,7 @@ const (
 	Failed  = "failed "
 	Inform  = "info   "
 	Null    = "NULL   "
-	FATAL   = "fatal  "
+	FATAL   = "🅵🅰🆃🅰🅻"
 )
 
 var success = ClrOk + Success + ClrDk
@@ -59,9 +60,22 @@ func ErrLog(r string, f string, err error) {
 	}
 }
 
-func HttpError(w http.ResponseWriter, m string, err error) {
+func NoRowsErrLog(r string, f string, err error) error {
 	if err != nil {
-		http.Error(w, m, http.StatusInternalServerError)
+		log.Printf("%s %s %s %s %v\n", failed, r, f, dm, err)
+		if err == sql.ErrNoRows {
+			log.Printf("%s %s %s %s %v\n", failed, r, f, dm, err)
+			return nil
+		}
+		return err
+	}
+	return err
+}
+
+func HttpError(w http.ResponseWriter, m string, err error, code int) {
+	if err != nil {
+		http.Error(w, m, code)
+		Err("http", m, err)
 	}
 }
 
@@ -102,11 +116,19 @@ func PostMethodOnly(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func GetMethodOnly(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		Info("method", "verifyIdToken", r.Method)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+}
+
 func Fatal(r string, f string, err error) {
 	if err != nil {
 		log.Printf("%s %s %s %s %v\n", fatal, r, f, dm, err)
+		return
 	}
-	return
 }
 
 func NullLog(r string, f string, err error) {

@@ -5,10 +5,19 @@ import (
 	"fast/config"
 	"fast/internal/models"
 	"fast/internal/rdb"
-	"fast/internal/repository"
 	"fast/pkg/utils"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
+	"time"
+	"unicode/utf8"
+
+	"github.com/muesli/termenv"
+)
+
+var (
+	tclr = termenv.ColorProfile()
 )
 
 func main() {
@@ -21,12 +30,25 @@ func main() {
 		api.AuthMiddleware,
 		api.CorsMiddleware,
 	}
+	admin_middlewares := []api.Middleware{
+		api.AuthMiddleware,
+		api.CorsMiddleware,
+		api.AdminClaimsMiddleware,
+	}
+	withClaims := append(middlewares, api.ClaimsMiddleware)
+	withAdmin := append(middlewares, api.AdminClaimsMiddleware)
 
-	mux.HandleFunc(api.AuthRootPath, api.Chain(api.Rdbc, middlewares...))
+	mux.HandleFunc(api.AuthPath, api.Chain(api.DbCheck, middlewares...))
 	mux.HandleFunc(api.GetUserPath, api.Chain(api.GetUser, middlewares...))
 	mux.HandleFunc(api.CreateTokenPath, api.Chain(api.CreateToken, middlewares...))
 	mux.HandleFunc(api.VerifyIdTokenPath, api.Chain(api.VerifyIdToken, middlewares...))
 	mux.HandleFunc(api.VerifyAuthKeyPath, api.Chain(api.VerifyAuthKey, middlewares...))
+
+	// WITH CLAIMS
+	mux.HandleFunc(api.CustomClaimsPath, api.Chain(api.CreateCustomClaims, withClaims...))
+	// WITH ADMIN
+	mux.HandleFunc(api.AdminPath, api.Chain(api.CheckAdminAuthority, admin_middlewares...))
+	mux.HandleFunc(api.AdminClaimsPath, api.Chain(api.CreateAdminClaims, withAdmin...))
 
 	// DEV-ROUTES
 	mux.HandleFunc(api.DevSetPath, api.Chain(api.DevSet, middlewares...))
@@ -37,28 +59,111 @@ func main() {
 		Handler: mux,
 	}
 
-	fmt.Println(repository.Code + "\n     ⟢   ╭" + repository.Dark + " ╮" + repository.Reset + "     𝗿𝗲-𝘂𝗽.𝗽𝗵 " + repository.Code)
-	fmt.Println(repository.Reset + " ⟢     ╭◜" + repository.Code + "╰" + repository.Black + "⟜" + repository.Dark + "╯" + repository.Dark + "◝╮" + repository.Code + "   𝚜𝚎𝚌𝚞𝚛𝚎 ⛌ 𝚜𝚎𝚛𝚟𝚎𝚛𝚜" + repository.Start)
-	fmt.Println("")
+	// splash()
+	MkOne()
 
 	// TEST //
-	models.Ping()
-	rdb.Ping()
+	models.PsqlHealth()
+	rdb.RedisHealth()
 	// END TEST //
 
 	// SERVER START
-	utils.Fatal("server", "boot", server.ListenAndServe())
-	utils.Ok("server", "boot", "system-online")
+	err := server.ListenAndServe()
+	utils.Fatal("serve", "boot", err)
+	utils.OkLog("serve", "boot", "system-online", err)
 }
 
-/*
-   ╭ ╮
- ╭◜╰ ╯◝╮
-𝚜𝚎𝚌𝚞𝚛𝚎
-𝚜𝚎𝚛𝚟𝚎𝚛𝚜
-𝗿𝗲-𝘂𝗽.𝗽𝗵
-𝗐 𝖾 𝖻  𝗌 𝖾 𝗋 𝗏 𝗂 𝖼 𝖾 𝗌
-◜頻ꔷ⏠⛃◝◟◞─⛌྾
+var (
+	gr8 = tclr.Color("#374151")
+)
 
-// fmt.Println(repository.Code + "\n ᜍ      ᜁ      ᜂ     ᜉ      ᜑ")
-*/
+func drawBorder(l int, t int) {
+
+	rt := []string{"╭", "╮"}
+	rb := []string{"╰", "╯"}
+
+	// createLine( )
+	c := rt
+	if t == 1 {
+		c = rb
+	}
+
+	fmt.Printf(Colorize(c[0], gr8))
+	progress := "──"
+	for range l {
+		time.Sleep(25 * time.Millisecond)
+		fmt.Printf(Colorize(progress, gr8))
+	}
+	fmt.Println(Colorize(c[1], gr8))
+}
+
+func renderContent(c string, l int) {
+
+	p := l - countVis(c)
+	if p < 0 {
+		p = p * -1
+	}
+
+	v := Colorize("│", gr8)
+	ws := strings.Repeat(" ", l-countVis(c))
+
+	// fmt.Printf(" %v ", (l-countVis(c))/2)
+	fmt.Println(v + c + ws + v)
+}
+
+func clearScreen() {
+	fmt.Print("\033[H\033[2J")
+}
+
+func Colorize(s string, c termenv.Color) string {
+	cstr := tclr.String(s)
+	return cstr.Foreground(c).String()
+}
+func splash() {
+
+	clearScreen()
+
+	rose := tclr.Color("#fb7185")
+
+	// width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	// utils.ErrLog("line", "get-size", err)
+
+	// contents := []string{firstrow, secndrow, thirdrow}
+
+	// n := (width / 6) - 2
+
+	// for i := range len(contents) {
+	// 	renderContent(contents[i], n/2)
+	// }
+	// createLine(n, "╰", "╯")
+
+	// fmt.Println(strings.Count(firstrow, ""), len(secndrow), strings.Count(thirdrow, ""))
+	fmt.Println(Colorize("", rose))
+
+}
+
+func countVis(input string) int {
+	// Regular expression to match ANSI escape sequences
+	ansiRegex := regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
+
+	// Remove all ANSI escape sequences from the input string
+	cleanString := ansiRegex.ReplaceAllString(input, "")
+
+	// Count the number of characters in the cleaned string
+	return utf8.RuneCountInString(cleanString)
+}
+
+func MkOne() {
+
+	clearScreen()
+
+	f := "    ⟢     ╭ ╮"
+	s := " ⟢      ╭◜╰ ╯◝╮"
+	t := "   ⟢       ◌"
+
+	drawBorder(9, 0)
+	for c := range map[string]interface{}{f: f, s: s, t: t} {
+		renderContent(c, 18)
+	}
+	drawBorder(9, 1)
+}

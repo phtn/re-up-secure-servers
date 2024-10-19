@@ -8,9 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "github.com/lib/pq"
+
 	firebase "firebase.google.com/go/v4"
 	"github.com/redis/go-redis/v9"
-	_ "github.com/tursodatabase/libsql-client-go/libsql"
+
+	// _ "github.com/tursodatabase/libsql-client-go/libsql"
 	"google.golang.org/api/option"
 )
 
@@ -18,7 +21,7 @@ type Config struct {
 	Addr          string
 	Fire          *firebase.App
 	Rdbs          *redis.Client
-	Db            *sql.DB
+	PQ            *sql.DB
 	ApiKey        string
 	AllowedOrigin string
 	JwtSecret     string
@@ -27,13 +30,14 @@ type Config struct {
 var (
 	fire *firebase.App
 	rdbs *redis.Client
-	db   *sql.DB
+	pq   *sql.DB
 	addr string
 	akey string
 	orig string
 	jwts string
 	turl string
 	ttkn string
+	pdsn string
 )
 
 func init() {
@@ -43,15 +47,16 @@ func init() {
 	jwts = os.Getenv("RE_UP_JWT_SECRET")
 	turl = os.Getenv("TURSO_DATABASE_URL")
 	ttkn = os.Getenv("TURSO_AUTH_TOKEN")
+	pdsn = os.Getenv("SB_DSN")
 	fire = initialiazeFirebase()
 	rdbs = initializeRedis()
-	db = initialiazeDB()
+	pq = initializePQ()
 
 }
 
 func LoadConfig() *Config {
 
-	return &Config{Addr: addr, Fire: fire, Rdbs: rdbs, ApiKey: akey, AllowedOrigin: orig, JwtSecret: jwts, Db: db}
+	return &Config{Addr: addr, Fire: fire, Rdbs: rdbs, ApiKey: akey, AllowedOrigin: orig, JwtSecret: jwts, PQ: pq}
 }
 
 func initializeRedis() *redis.Client {
@@ -88,9 +93,18 @@ func initialiazeFirebase() *firebase.App {
 	return fire
 }
 
-func initialiazeDB() *sql.DB {
-	url := turl + ttkn
-	db, err := sql.Open("libsql", url)
-	utils.ErrLog("db", "open", err)
-	return db
+// func initialiazeDB() *sql.DB {
+// 	// dataSourceName := turl + ttkn
+// 	dataSourceName := "file:./local.db"
+// 	db, err := sql.Open("libsql", dataSourceName)
+// 	utils.ErrLog("db", "open", err)
+// 	return db
+// }
+
+func initializePQ() *sql.DB {
+	dataSourceName := pdsn
+	pq, err := sql.Open("postgres", dataSourceName)
+	utils.ErrLog("pq", "open", err)
+
+	return pq
 }

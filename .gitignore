@@ -2,3 +2,11 @@ xlibs
 dump.rdb
 go.sum
 go.mod
+dump.sql
+fast_turso_dev
+fast_turso_dev-shm
+fast_turso_dev-wal
+local.db
+local.db-shm
+local.db-wal
+.migrations

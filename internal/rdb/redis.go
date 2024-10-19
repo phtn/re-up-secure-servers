@@ -13,7 +13,7 @@ import (
 
 var rdb = config.LoadConfig().Rdbs
 
-func Ping() interface{} {
+func RedisHealth() interface{} {
 	start := time.Now()
 	ctx := context.Background()
 	ping := rdb.Ping(ctx)
