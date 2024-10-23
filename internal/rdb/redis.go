@@ -11,13 +11,16 @@ import (
 	"firebase.google.com/go/v4/auth"
 )
 
-var rdb = config.LoadConfig().Rdbs
+var (
+	rdb = config.LoadConfig().Rdbs
+	L   = utils.NewConsole()
+)
 
 func RedisHealth() interface{} {
 	start := time.Now()
 	ctx := context.Background()
 	ping := rdb.Ping(ctx)
-	utils.Ok("redis", "ping", ping)
+	L.Good("redis", "ping", ping)
 	elapsed := time.Now().Sub(start) / time.Millisecond
 	response := map[string]interface{}{
 		"sys":     "redis",
@@ -66,16 +69,16 @@ func RetrieveToken(k string) (*auth.Token, error) {
 	return token, err
 }
 
-func StoreVal(key string, v interface{}) string {
+func StoreVal(key string, h time.Duration, v interface{}) string {
 	ctx := context.Background()
 
 	value, err := json.Marshal(v)
-	utils.ErrLog("json", "storeToken", err)
+	L.Fail("json", "marshal", err)
 
-	err = rdb.Set(ctx, key, value, 1*time.Hour).Err()
-	utils.ErrLog("set", "storeToken", err)
+	err = rdb.Set(ctx, key, value, h*time.Hour).Err()
+	L.Fail("redis", "set-failed", key, err)
 
-	utils.OkLog("set", "storeToken", "all good", err)
+	L.Good("redis", "set-key", key, time.Now().Add(h*time.Hour).Local().UTC().Format("2006-01-02 15:04:05"))
 	return key
 }
 

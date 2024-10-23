@@ -42,7 +42,7 @@ func NewCustomClaims(u *UserCredentials) (*auth.Token, error) {
 	authorized := false
 
 	if role, ok := t.Claims["role"]; ok {
-		if role == "manager" {
+		if role == "manager" || role == "admin" {
 			authorized = true
 		}
 	}

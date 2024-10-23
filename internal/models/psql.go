@@ -10,7 +10,8 @@ import (
 var (
 	pq  = config.LoadConfig().PQ
 	ctx = context.Background()
-	r   = "p_sql"
+	r   = "postgres"
+	L   = utils.NewConsole()
 )
 
 func PsqlHealth() interface{} {
@@ -18,13 +19,13 @@ func PsqlHealth() interface{} {
 	start := time.Now()
 
 	err := pq.Ping()
-	utils.WarnLog(r, "ping", "down", err)
-	utils.Ok(r, "ping", "up")
+	L.Warn(r, "ping", "down", err)
+	L.Good(r, "ping", "up", err)
 
 	elapsed := time.Now().Sub(start) / time.Millisecond
 
 	return map[string]interface{}{
-		"sys":     "turso",
+		"sys":     "pq",
 		"elapsed": elapsed,
 		"unit":    "ms",
 	}
@@ -36,9 +37,9 @@ func GetAccountWithAPIKey(apiKey string) (*Account, error) {
 	query := "SELECT * FROM accounts WHERE api_key = $1"
 
 	err := pq.QueryRow(query, apiKey).Scan(&account.UID, &account.Name, &account.Email, &account.Active, &account.CrTime, &account.Role, &account.APIKey)
-	utils.NoRowsErrLog("api-key", "query-row", err)
+	utils.NoRowsErrLog("accounts", "query-row", err)
 
-	utils.OkLog(r, "is_active", account.Active, err)
+	L.Good("accounts", "active", account.Active, err)
 	return &account, nil
 }
 
@@ -48,11 +49,11 @@ func CheckAdminPrivileges(uid string) bool {
 
 	matched := false
 	err := pq.QueryRow(query, uid).Scan(&account.UID, &account.Name, &account.Email, &account.Active, &account.CrTime, &account.Role, &account.APIKey)
-	utils.ErrLog(r, "uid", err)
+	L.Fail(r, "query-by-uid", err)
 
 	if uid == account.UID {
 		matched = true
-		utils.OkLog(r, "uid", "matched", err)
+		L.Good(r, "matching-uid", "matched", err)
 	}
 	return matched
 }
