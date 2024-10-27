@@ -40,7 +40,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "group_code", Type: field.TypeString, Size: 24},
-		{Name: "address", Type: field.TypeString, Size: 255},
+		{Name: "address", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "account_id", Type: field.TypeUUID},
 	}

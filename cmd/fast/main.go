@@ -65,7 +65,8 @@ func main() {
 	// END DB HEALTH //
 
 	// TEST //
-	// psql.CreateAccount("re-up.ph", "hq@re-up.ph", "ZjI2NTk3MjQtMzRmNi00MGFjLThhZmItYjE1OGFmYTJmNzM0", "N7yCd3kCViMA0jD3eNuv5rqKxgy1")
+	// account_id := uuid.MustParse("39edf942-75e9-4bca-b71a-29c161be9b28")
+	// psql.CreateNewGroup("re-up.ph", "hq@re-up.ph", "+639156984277", "N7yCd3kCViMA0jD3eNuv5rqKxgy1", "APEX", account_id, "https://avatars.githubusercontent.com/u/167968853?v=4", true)
 	// psql.GetAllAccounts()
 
 	// END TEST //

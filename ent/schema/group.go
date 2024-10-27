@@ -31,7 +31,7 @@ func (Group) Fields() []ent.Field {
 			Unique(),
 		field.String("address").
 			MaxLen(255).
-			NotEmpty(),
+			Optional(),
 		field.Bool("is_active").
 			Default(true),
 	}

@@ -17,9 +17,9 @@ entd:
 	go run -mod=mod entgo.io/ent/cmd/ent describe ./ent/schema
 
 entm:
-	atlas migrate diff $(n) \
+	atlas migrate diff \
 	--dir "file://ent/migrate/migrations" \
-	--to "ent://ent/schema?globalid=1" \
+	--to "ent://ent/schema?globalindex=1" \
 	--dev-url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
 
 entma:
@@ -35,10 +35,24 @@ entms:
 pqd:
 	psql postgres://xpriori:phtn458@localhost:5432/dpqb?sslmode=disable
 
+atlasg:
+	atlas migrate new $(n) \
+	--dir "file://ent/migrate/migrations" \
+
+
 atlasp:
 	atlas migrate push $(n) \
 	--dir "file://ent/migrate" \
 	--dev-url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
+
+atlasi:
+	atlas schema inspect -u "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
+
+atlasl:
+	atlas migrate lint \
+	--dev-url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable" \
+	--latest 1 \
+	-w
 
 
 clean:

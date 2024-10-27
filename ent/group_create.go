@@ -121,6 +121,14 @@ func (gc *GroupCreate) SetAddress(s string) *GroupCreate {
 	return gc
 }
 
+// SetNillableAddress sets the "address" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableAddress(s *string) *GroupCreate {
+	if s != nil {
+		gc.SetAddress(*s)
+	}
+	return gc
+}
+
 // SetIsActive sets the "is_active" field.
 func (gc *GroupCreate) SetIsActive(b bool) *GroupCreate {
 	gc.mutation.SetIsActive(b)
@@ -296,9 +304,6 @@ func (gc *GroupCreate) check() error {
 	}
 	if _, ok := gc.mutation.AccountID(); !ok {
 		return &ValidationError{Name: "account_id", err: errors.New(`ent: missing required field "Group.account_id"`)}
-	}
-	if _, ok := gc.mutation.Address(); !ok {
-		return &ValidationError{Name: "address", err: errors.New(`ent: missing required field "Group.address"`)}
 	}
 	if v, ok := gc.mutation.Address(); ok {
 		if err := group.AddressValidator(v); err != nil {

@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"fast/internal/models"
+	"fast/internal/psql"
 	"fast/internal/rdb"
 	"fast/internal/shield"
 	"fast/pkg/utils"
+	"strings"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -164,13 +166,18 @@ func TokenVerification(ctx context.Context, fire *firebase.App, v models.VerifyT
 // 	return response
 // }
 
-func NewAgentCode(v models.VerifyToken) AgentCodeResponse {
-	key := shield.NewKey(v.Email)
-	url := "https://fastinsure.tech/new/agent/code?key=" + key
+func NewAgentCode(v models.VerifyToken) *AgentCodeResponse {
+	group_code := psql.GetGroupCode(v.UID)
+	key := shield.NewKey(group_code)
+	hcode := strings.Split(key, "--")
+	encryptedUID := shield.Encrypt([]byte(v.UID), v.IDToken)
+	encodedUID := shield.EncodeBase64(encryptedUID)
+
+	url := "http://localhost:3000/hcode?key=" + hcode[0] + "&grp=" + hcode[1] + "&nsze=" + hcode[2] + "&sha=" + encodedUID[:24]
 	rdb.StoreVal(key, 48, url)
 	L.Info("create  ", "agent", "code", url)
-	response := AgentCodeResponse{Key: key, URL: url}
-	return response
+	response := AgentCodeResponse{Key: key + "--" + encodedUID, URL: url}
+	return &response
 }
 
 func NewToken(uid models.Uid, ctx context.Context, fire *firebase.App) string {

@@ -29,21 +29,23 @@ const (
 
 const (
 	AuthPath          = Auth
-	GetUserPath       = "/getUser"
-	CreateTokenPath   = "/createToken"
-	VerifyIdTokenPath = "/verifyIdToken"
-	VerifyAuthKeyPath = "/verifyAuthKey"
+	GetUserPath       = "/get-user"
+	CreateTokenPath   = "/create-token"
+	VerifyIdTokenPath = "/verify-id-token"
+	VerifyAuthKeyPath = "/verify-auth-key"
 	// CLAIMS
 	ClaimsPath       = Claims
 	CustomClaimsPath = "/create-custom-claims"
 	GetClaimsPath    = "/get-claims"
 	AgentCodePath    = "/create-code"
-	DevSetPath       = "/devSet"
-	DevGetPath       = "/devGet"
+	CreateGroupPath  = "/create-group"
+	// DEV
+	DevSetPath = "/dev-set"
+	DevGetPath = "/dev-get"
 	// ADMIN
-	AccountTokenPath = "/create-account-token"
 	AdminPath        = Admin
-	AdminClaimsPath  = "/adminClaims"
+	AdminClaimsPath  = "/admin-claims"
+	AccountTokenPath = "/create-account-token"
 )
 
 var (
@@ -88,8 +90,9 @@ func CreateAgentCode(c *fiber.Ctx) error {
 	if err := c.BodyParser(&v); err != nil {
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
 	}
-	data := service.NewAgentCode(v)
-	return utils.FiberResponse(c, utils.OK, nil, utils.JsonData{Message: "  OK - POST", Data: data})
+	result := service.NewAgentCode(v)
+	data := utils.JsonData{Data: result}
+	return utils.FiberResponse(c, utils.OK, nil, data)
 }
 
 func CreateAccountToken(c *fiber.Ctx) error {

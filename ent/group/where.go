@@ -726,6 +726,16 @@ func AddressHasSuffix(v string) predicate.Group {
 	return predicate.Group(sql.FieldHasSuffix(FieldAddress, v))
 }
 
+// AddressIsNil applies the IsNil predicate on the "address" field.
+func AddressIsNil() predicate.Group {
+	return predicate.Group(sql.FieldIsNull(FieldAddress))
+}
+
+// AddressNotNil applies the NotNil predicate on the "address" field.
+func AddressNotNil() predicate.Group {
+	return predicate.Group(sql.FieldNotNull(FieldAddress))
+}
+
 // AddressEqualFold applies the EqualFold predicate on the "address" field.
 func AddressEqualFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldEqualFold(FieldAddress, v))

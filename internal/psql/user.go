@@ -1,6 +1,6 @@
 package psql
 
-func CreateUser(name string, email string, phone_number string, uid string) string {
+func NewUser(name string, email string, phone_number string, uid string) string {
 
 	user, err := pq.User.
 		Create().
@@ -16,7 +16,7 @@ func CreateUser(name string, email string, phone_number string, uid string) stri
 	return user.UID
 }
 
-func CreateAccount(name string, email string, api_key string, uid string) string {
+func NewAccount(name string, email string, api_key string, uid string) string {
 
 	account, err := pq.Account.
 		Create().

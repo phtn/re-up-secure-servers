@@ -1466,9 +1466,22 @@ func (m *GroupMutation) OldAddress(ctx context.Context) (v string, err error) {
 	return oldValue.Address, nil
 }
 
+// ClearAddress clears the value of the "address" field.
+func (m *GroupMutation) ClearAddress() {
+	m.address = nil
+	m.clearedFields[group.FieldAddress] = struct{}{}
+}
+
+// AddressCleared returns if the "address" field was cleared in this mutation.
+func (m *GroupMutation) AddressCleared() bool {
+	_, ok := m.clearedFields[group.FieldAddress]
+	return ok
+}
+
 // ResetAddress resets all changes to the "address" field.
 func (m *GroupMutation) ResetAddress() {
 	m.address = nil
+	delete(m.clearedFields, group.FieldAddress)
 }
 
 // SetIsActive sets the "is_active" field.
@@ -1846,7 +1859,11 @@ func (m *GroupMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *GroupMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(group.FieldAddress) {
+		fields = append(fields, group.FieldAddress)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1859,6 +1876,11 @@ func (m *GroupMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *GroupMutation) ClearField(name string) error {
+	switch name {
+	case group.FieldAddress:
+		m.ClearAddress()
+		return nil
+	}
 	return fmt.Errorf("unknown Group nullable field %s", name)
 }
 

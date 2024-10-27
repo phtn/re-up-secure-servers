@@ -233,21 +233,7 @@ func init() {
 	// groupDescAddress is the schema descriptor for address field.
 	groupDescAddress := groupFields[3].Descriptor()
 	// group.AddressValidator is a validator for the "address" field. It is called by the builders before save.
-	group.AddressValidator = func() func(string) error {
-		validators := groupDescAddress.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(address string) error {
-			for _, fn := range fns {
-				if err := fn(address); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	group.AddressValidator = groupDescAddress.Validators[0].(func(string) error)
 	// groupDescIsActive is the schema descriptor for is_active field.
 	groupDescIsActive := groupFields[4].Descriptor()
 	// group.DefaultIsActive holds the default value on creation for the is_active field.

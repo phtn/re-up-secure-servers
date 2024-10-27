@@ -156,6 +156,12 @@ func (gu *GroupUpdate) SetNillableAddress(s *string) *GroupUpdate {
 	return gu
 }
 
+// ClearAddress clears the value of the "address" field.
+func (gu *GroupUpdate) ClearAddress() *GroupUpdate {
+	gu.mutation.ClearAddress()
+	return gu
+}
+
 // SetIsActive sets the "is_active" field.
 func (gu *GroupUpdate) SetIsActive(b bool) *GroupUpdate {
 	gu.mutation.SetIsActive(b)
@@ -332,6 +338,9 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := gu.mutation.Address(); ok {
 		_spec.SetField(group.FieldAddress, field.TypeString, value)
+	}
+	if gu.mutation.AddressCleared() {
+		_spec.ClearField(group.FieldAddress, field.TypeString)
 	}
 	if value, ok := gu.mutation.IsActive(); ok {
 		_spec.SetField(group.FieldIsActive, field.TypeBool, value)
@@ -556,6 +565,12 @@ func (guo *GroupUpdateOne) SetNillableAddress(s *string) *GroupUpdateOne {
 	return guo
 }
 
+// ClearAddress clears the value of the "address" field.
+func (guo *GroupUpdateOne) ClearAddress() *GroupUpdateOne {
+	guo.mutation.ClearAddress()
+	return guo
+}
+
 // SetIsActive sets the "is_active" field.
 func (guo *GroupUpdateOne) SetIsActive(b bool) *GroupUpdateOne {
 	guo.mutation.SetIsActive(b)
@@ -762,6 +777,9 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 	}
 	if value, ok := guo.mutation.Address(); ok {
 		_spec.SetField(group.FieldAddress, field.TypeString, value)
+	}
+	if guo.mutation.AddressCleared() {
+		_spec.ClearField(group.FieldAddress, field.TypeString)
 	}
 	if value, ok := guo.mutation.IsActive(); ok {
 		_spec.SetField(group.FieldIsActive, field.TypeBool, value)
