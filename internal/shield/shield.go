@@ -14,9 +14,22 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
+
+type NewAccountToken struct {
+	UID   string `json:"uid,omitempty"`
+	Email string `json:"email,omitempty"`
+}
+
+type SuperClaims struct {
+	jwt.RegisteredClaims
+	UID    string `json:"uid,omitempty"`
+	Claims string `json:"claims,omitempty"`
+}
 
 var r = "encrypt"
 
@@ -114,8 +127,40 @@ func NewJWTKeyFromStr(secret string) []byte {
 func EncodeBase64(src []byte) string {
 	return base64.StdEncoding.EncodeToString(src)
 }
+
 func DecodeBase64(s string) []byte {
 	key, err := base64.StdEncoding.DecodeString(s)
 	utils.ErrLog("base64", "decode", err)
 	return key
+}
+
+func NewAccount(u *NewAccountToken) (interface{}, error) {
+
+	now := time.Now()
+	claims := SuperClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
+			Issuer:    "re-up.ph secure servers",
+			Subject:   u.UID,
+			Audience:  []string{"re-up secure servers test-clients"},
+		},
+		UID:    u.UID,
+		Claims: "manager,group-master,active",
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(NewKey(S)))
+	L.FailR("new acct", "unable to signed token", tokenString, err)
+
+	part := strings.Split(tokenString, ".")
+
+	L.Info("new acct", "token", part[1])
+	L.Info("new acct", "key", EncodeBase64([]byte(part[1])))
+
+	result := make(map[string]interface{})
+	result["key"] = EncodeBase64([]byte(part[1]))
+	result["token"] = part[1]
+
+	return result, nil
 }

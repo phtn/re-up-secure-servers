@@ -4,7 +4,6 @@ import (
 	"context"
 	"fast/internal/models"
 	"fast/internal/rdb"
-	"fast/internal/repository"
 	"fast/internal/shield"
 	"fast/pkg/utils"
 
@@ -16,6 +15,15 @@ const (
 	GET   = "get"
 	POST  = "post"
 	PATCH = "patch"
+)
+
+type AgentCodeResponse struct {
+	Key string `json:"key"`
+	URL string `json:"url"`
+}
+
+var (
+	L = utils.NewConsole()
 )
 
 func eqc(k string, verified bool, t *auth.Token) models.VResult {
@@ -31,26 +39,45 @@ func eqc(k string, verified bool, t *auth.Token) models.VResult {
 	}
 }
 
-func VerifyIdToken(ctx context.Context, fire *firebase.App, v models.VerifyToken) models.VResult {
-	var f, r = "verifyIdToken", POST
+func VerifyIdToken(ctx context.Context, fire *firebase.App, out *models.VerifyToken) models.VResult {
+	var r, f = "vtoken", "auth"
 
-	utils.Info(v.IDToken[:8], v.Email, v.UID)
+	L.Info(out.IDToken[:8], out.Email, out.UID)
 	client, err := fire.Auth(context.Background())
-	utils.ErrLog(r, f, err)
+	L.Fail(r, f, err)
 
-	k := shield.NewKey(v.Email)
-	t, err := client.VerifyIDToken(ctx, v.IDToken)
-	utils.ErrLog(r, f, err)
+	k := shield.NewKey(out.Email)
+	t, err := client.VerifyIDToken(ctx, out.IDToken)
+	L.Fail(r, f, err)
 
-	verified := t.UID == v.UID
-	utils.Info("verif", "id_token", verified)
+	verified := t.UID == out.UID
+	L.Info("verify", "id_token", verified)
 
-	rdb.StoreToken(k, f, t)
+	// rdb.StoreToken(k, f, t)
 	return eqc(k, verified, t)
 }
 
+func GetUserRecord(ctx context.Context, fire *firebase.App, v *models.VerifyToken) *models.Verified {
+	var r, f = "id-token", "verified"
+
+	// utils.Info(v.IDToken[:8], v.Email, v.UID)
+	client, err := fire.Auth(ctx)
+	L.Fail(r, f, err)
+
+	user, err := client.GetUser(ctx, v.UID)
+	L.Fail(r, f, err)
+
+	verified := user.UID == v.UID
+	L.Info(r, f, verified)
+
+	return &models.Verified{
+		Verified:   verified,
+		UserRecord: user,
+	}
+}
+
 func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithAuthKey) models.VResult {
-	var r, f = POST, "authk"
+	var r, f = POST, "authky"
 
 	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
@@ -71,13 +98,13 @@ func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithA
 	}
 
 	verified = token.UID == v.UID
-	utils.Ok("verif", "id_token", verified)
+	utils.Ok("verify", "id_token", verified)
 
 	return eqc(k, verified, token)
 }
 
 func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bool {
-	var r, f = "verif", "admin"
+	var r, f = "verify", "admin"
 
 	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
@@ -85,7 +112,6 @@ func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bo
 	if v.IDToken == "" {
 		return false
 	}
-
 	t, err := client.VerifyIDToken(ctx, v.IDToken)
 	utils.ErrLog(r, f, err)
 
@@ -94,7 +120,7 @@ func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bo
 	claims := t.Claims
 	if custom_claims, ok := claims["manager"]; ok {
 		if custom_claims.(bool) {
-			utils.Ok("claim", "manager", "ok")
+			utils.Ok("claims", "manager", "ok")
 			return verified && ok
 		}
 		with_claims = ok
@@ -102,7 +128,7 @@ func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bo
 	}
 	if admin_claims, ok := claims["admin"]; ok {
 		if admin_claims.(bool) {
-			utils.Ok("claim", "admin", "ok")
+			utils.Ok("claims", "admin", "ok")
 			return verified && ok
 		}
 		with_claims = ok
@@ -113,17 +139,42 @@ func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bo
 	return verified && with_claims
 }
 
-func CreateToken(uid models.Uid, ctx context.Context, fire *firebase.App) string {
-	var f, r = "createToken", POST
+func TokenVerification(ctx context.Context, fire *firebase.App, v models.VerifyToken) bool {
+	var f, r = "verify", POST
 
+	utils.Info(v.IDToken[:8], v.Email, v.UID)
 	client, err := fire.Auth(context.Background())
 	utils.ErrLog(r, f, err)
 
-	token, err := client.CustomToken(context.Background(), uid.UID)
+	t, err := client.VerifyIDToken(ctx, v.IDToken)
 	utils.ErrLog(r, f, err)
 
+	verified := t.UID == v.UID
+	utils.Info("verify", "id_token", verified)
+
+	return verified
+}
+
+func NewAgentCode(v models.VerifyToken) AgentCodeResponse {
+	key := shield.NewKey(v.Email)
+	url := "https://fastinsure.tech/new/agent/code?key=" + key
+	rdb.StoreVal(key, 48, url)
+	L.Info("create  ", "agent", "code", url)
+	response := AgentCodeResponse{Key: key, URL: url}
+	return response
+}
+
+func NewToken(uid models.Uid, ctx context.Context, fire *firebase.App) string {
+	var r, f = "new token", "NewToken"
+
+	client, err := fire.Auth(context.Background())
+	L.Fail(r, f, err)
+
+	token, err := client.CustomToken(context.Background(), uid.UID)
+	L.Fail(r, f, err)
+
 	if len(token) >= 8 {
-		utils.Ok(r, f, uid.UID+string(" · "+repository.ClrBt)+token[:16]+string(repository.Reset))
+		L.Good(r, f, token[:16])
 	}
 	return token
 }

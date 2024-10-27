@@ -3,167 +3,112 @@ package main
 import (
 	"fast/api"
 	"fast/config"
-	"fast/internal/models"
+	"fast/internal/psql"
 	"fast/internal/rdb"
 	"fast/pkg/utils"
-	"fmt"
-	"net/http"
-	"regexp"
-	"strings"
 	"time"
-	"unicode/utf8"
 
-	"github.com/muesli/termenv"
-)
-
-var (
-	tclr = termenv.ColorProfile()
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/idempotency"
 )
 
 func main() {
 
 	addr := config.LoadConfig().Addr
 
-	mux := http.NewServeMux()
+	server := fiber.New()
+	server.Use(idempotency.New(idempotency.Config{
+		Lifetime: 30 * time.Minute,
+	}))
+	server.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+	// server.Use(csrf.New(csrf.Config{
+	// 	KeyLookup:      "header:X-CSRF-Token",
+	// 	CookieName:     "csrf_",
+	// 	CookieSameSite: "Lax",
+	// 	Expiration:     1 * time.Hour,
+	// 	KeyGenerator:   utils.Guid,
+	// }))
 
-	middlewares := []api.Middleware{
-		api.AuthMiddleware,
-		api.CorsMiddleware,
-	}
-	admin_middlewares := []api.Middleware{
-		api.AuthMiddleware,
-		api.CorsMiddleware,
-		api.AdminClaimsMiddleware,
-	}
-	withClaims := append(middlewares, api.ClaimsMiddleware)
-	withAdmin := append(middlewares, api.AdminClaimsMiddleware)
+	withAuth := []fiber.Handler{api.AuthMiddleware}
+	withClaims := []fiber.Handler{api.AuthMiddleware, api.ClaimsMiddleware}
+	withAdmin := []fiber.Handler{api.AuthMiddleware, api.ClaimsMiddleware, api.AdminClaimsMiddleware}
 
-	mux.HandleFunc(api.AuthPath, api.Chain(api.DbCheck, middlewares...))
-	mux.HandleFunc(api.GetUserPath, api.Chain(api.GetUser, middlewares...))
-	mux.HandleFunc(api.CreateTokenPath, api.Chain(api.CreateToken, middlewares...))
-	mux.HandleFunc(api.VerifyIdTokenPath, api.Chain(api.VerifyIdToken, middlewares...))
-	mux.HandleFunc(api.VerifyAuthKeyPath, api.Chain(api.VerifyAuthKey, middlewares...))
+	// SERVER
+	F := server.Group("/")
+	F.Get(api.Livez, api.ServerLivez)
+	F.Get(api.Readyz, api.ServerReadyz)
+
+	// AUTHENTICATED
+	authGroup := server.Group(api.AuthPath, withAuth...)
+	authGroup.Post(api.VerifyIdTokenPath, api.VerifyIdToken)
+	authGroup.Post(api.GetClaimsPath, api.GetClaims)
 
 	// WITH CLAIMS
-	mux.HandleFunc(api.CustomClaimsPath, api.Chain(api.CreateCustomClaims, withClaims...))
-	// WITH ADMIN
-	mux.HandleFunc(api.AdminPath, api.Chain(api.CheckAdminAuthority, admin_middlewares...))
-	mux.HandleFunc(api.AdminClaimsPath, api.Chain(api.CreateAdminClaims, withAdmin...))
+	claimsGroup := server.Group(api.ClaimsPath, withClaims...)
+	claimsGroup.Post(api.CustomClaimsPath, withClaims...)
+	claimsGroup.Post(api.AgentCodePath, api.CreateAgentCode)
 
-	// DEV-ROUTES
-	mux.HandleFunc(api.DevSetPath, api.Chain(api.DevSet, middlewares...))
-	mux.HandleFunc(api.DevGetPath, api.Chain(api.DevGet, middlewares...))
+	// WITH ADMIN CLAIMS
+	adminGroup := server.Group(api.AdminPath, withAdmin...)
+	adminGroup.Post(api.AdminPath, withAdmin...)
+	adminGroup.Post(api.AccountTokenPath, api.CreateAccountToken)
 
-	server := &http.Server{
-		Addr:    addr,
-		Handler: mux,
-	}
+	utils.MkOne()
 
-	// splash()
-	MkOne()
+	// DB HEALTH //
+	psql.PsqlHealth()
+	rdb.RedisHealth()
+	// END DB HEALTH //
 
 	// TEST //
-	models.PsqlHealth()
-	rdb.RedisHealth()
+	// psql.CreateAccount("re-up.ph", "hq@re-up.ph", "ZjI2NTk3MjQtMzRmNi00MGFjLThhZmItYjE1OGFmYTJmNzM0", "N7yCd3kCViMA0jD3eNuv5rqKxgy1")
+	// psql.GetAllAccounts()
+
 	// END TEST //
 
 	// SERVER START
-	err := server.ListenAndServe()
-	utils.Fatal("serve", "boot", err)
-	utils.OkLog("serve", "boot", "system-online", err)
+	server.Listen(addr)
 }
 
-var (
-	gr8 = tclr.Color("#374151")
-)
+// mux := http.NewServeMux()
+// admin_middlewares := []api.Middleware{
+// 	api.AuthMiddleware,
+// 	api.CorsMiddleware,
+// 	api.AdminClaimsMiddleware,
+// }
+// withClaims := append(middlewares, api.ClaimsMiddleware)
+// withAdmin := append(middlewares, api.AdminClaimsMiddleware)
 
-func drawBorder(l int, t int) {
+// authGroup.Get(api.C)
+// authGroup.Get(api.GetUserPath)
+// authGroup.Post(api.CreateTokenPath)
+// authGroup.Post(api.VerifyAuthKeyPath)
 
-	rt := []string{"╭", "╮"}
-	rb := []string{"╰", "╯"}
+// mux.HandleFunc(api.AuthPath, api.Chain(api.DbCheck, middlewares...))
+// mux.HandleFunc(api.GetUserPath, api.Chain(api.GetUser, middlewares...))
+// mux.HandleFunc(api.CreateTokenPath, api.Chain(api.CreateToken, middlewares...))
+// mux.HandleFunc(api.VerifyIdTokenPath, api.Chain(api.VerifyIdToken, middlewares...))
+// mux.HandleFunc(api.VerifyAuthKeyPath, api.Chain(api.VerifyAuthKey, middlewares...))
 
-	// createLine( )
-	c := rt
-	if t == 1 {
-		c = rb
-	}
+// // WITH CLAIMS
+// mux.HandleFunc(api.CustomClaimsPath, api.Chain(api.CreateCustomClaims, withClaims...))
+// mux.HandleFunc(api.AgentCodePath, api.Chain(api.CreateAgentCode, withClaims...))
+// // WITH ADMIN
+// mux.HandleFunc(api.AdminPath, api.Chain(api.CheckAdminAuthority, admin_middlewares...))
+// mux.HandleFunc(api.AdminClaimsPath, api.Chain(api.CreateAdminClaims, withAdmin...))
 
-	fmt.Printf(Colorize(c[0], gr8))
-	progress := "──"
-	for range l {
-		time.Sleep(25 * time.Millisecond)
-		fmt.Printf(Colorize(progress, gr8))
-	}
-	fmt.Println(Colorize(c[1], gr8))
-}
+// // DEV-ROUTES
+// mux.HandleFunc(api.DevSetPath, api.Chain(api.DevSet, middlewares...))
+// mux.HandleFunc(api.DevGetPath, api.Chain(api.DevGet, middlewares...))
 
-func renderContent(c string, l int) {
-
-	p := l - countVis(c)
-	if p < 0 {
-		p = p * -1
-	}
-
-	v := Colorize("│", gr8)
-	ws := strings.Repeat(" ", l-countVis(c))
-
-	// fmt.Printf(" %v ", (l-countVis(c))/2)
-	fmt.Println(v + c + ws + v)
-}
-
-func clearScreen() {
-	fmt.Print("\033[H\033[2J")
-}
-
-func Colorize(s string, c termenv.Color) string {
-	cstr := tclr.String(s)
-	return cstr.Foreground(c).String()
-}
-func splash() {
-
-	clearScreen()
-
-	rose := tclr.Color("#fb7185")
-
-	// width, _, err := term.GetSize(int(os.Stdout.Fd()))
-	// utils.ErrLog("line", "get-size", err)
-
-	// contents := []string{firstrow, secndrow, thirdrow}
-
-	// n := (width / 6) - 2
-
-	// for i := range len(contents) {
-	// 	renderContent(contents[i], n/2)
-	// }
-	// createLine(n, "╰", "╯")
-
-	// fmt.Println(strings.Count(firstrow, ""), len(secndrow), strings.Count(thirdrow, ""))
-	fmt.Println(Colorize("", rose))
-
-}
-
-func countVis(input string) int {
-	// Regular expression to match ANSI escape sequences
-	ansiRegex := regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
-
-	// Remove all ANSI escape sequences from the input string
-	cleanString := ansiRegex.ReplaceAllString(input, "")
-
-	// Count the number of characters in the cleaned string
-	return utf8.RuneCountInString(cleanString)
-}
-
-func MkOne() {
-
-	clearScreen()
-
-	f := "    ⟢     ╭ ╮"
-	s := " ⟢      ╭◜╰ ╯◝╮"
-	t := "   ⟢       ◌"
-
-	drawBorder(9, 0)
-	for c := range map[string]interface{}{f: f, s: s, t: t} {
-		renderContent(c, 18)
-	}
-	drawBorder(9, 1)
-}
+// server := &http.Server{
+// 	Addr:    addr,
+// 	Handler: mux,
+// }
+// err := server.ListenAndServe()
+// utils.Fatal("serve", "boot", err)
+// utils.OkLog("serve", "boot", "system-online", err)

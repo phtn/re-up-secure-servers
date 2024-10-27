@@ -1,18 +1,32 @@
 package models
 
+import "firebase.google.com/go/v4/auth"
+
 type Uid struct {
 	UID string `json:"uid"`
 }
 
+type UserAccess struct {
+	AccessToken string `json:"access_token"`
+	UID         string `json:"uid"`
+	Email       string `json:"email"`
+}
+
+type UserRefresh struct {
+	RefreshToken string `json:"refresh_token"`
+	UID          string `json:"uid"`
+	Email        string `json:"email"`
+}
+
 type VerifyToken struct {
-	IDToken string `json:"idToken"`
+	IDToken string `json:"id_token"`
 	UID     string `json:"uid"`
 	Email   string `json:"email"`
 }
 
 type VerifyWithAuthKey struct {
-	AuthKey string `json:"authKey"`
-	IDToken string `json:"idToken"`
+	AuthKey string `json:"auth_key"`
+	IDToken string `json:"id_token"`
 	UID     string `json:"uid"`
 	Email   string `json:"email"`
 }
@@ -43,6 +57,11 @@ type UserCredential struct {
 
 type Identity struct {
 	Email []string `json:"email"`
+}
+
+type Verified struct {
+	UserRecord *auth.UserRecord `json:"token,omitempty"`
+	Verified   bool             `json:"verified"`
 }
 
 type Provider struct {

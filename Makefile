@@ -7,5 +7,39 @@ b:
 tidy:
 	go mod tidy
 
+entf:
+	go run -mod=mod entgo.io/ent/cmd/ent new $(f)
+
+entg:
+	go run -mod=mod entgo.io/ent/cmd/ent generate ./ent/schema
+
+entd:
+	go run -mod=mod entgo.io/ent/cmd/ent describe ./ent/schema
+
+entm:
+	atlas migrate diff $(n) \
+	--dir "file://ent/migrate/migrations" \
+	--to "ent://ent/schema?globalid=1" \
+	--dev-url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
+
+entma:
+	atlas migrate apply \
+	--dir "file://ent/migrate/migrations" \
+	--url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
+
+entms:
+	atlas migrate status \
+	--dir "file://ent/migrate/migrations" \
+	--url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
+
+pqd:
+	psql postgres://xpriori:phtn458@localhost:5432/dpqb?sslmode=disable
+
+atlasp:
+	atlas migrate push $(n) \
+	--dir "file://ent/migrate" \
+	--dev-url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
+
+
 clean:
 	rm -rf ./build/fast

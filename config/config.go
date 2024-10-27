@@ -3,11 +3,14 @@ package config
 import (
 	"context"
 	"database/sql"
+	"fast/ent"
 	"fast/pkg/utils"
 	"log"
 	"os"
 	"path/filepath"
 
+	dialect "entgo.io/ent/dialect"
+	esql "entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"
 
 	firebase "firebase.google.com/go/v4"
@@ -21,7 +24,7 @@ type Config struct {
 	Addr          string
 	Fire          *firebase.App
 	Rdbs          *redis.Client
-	PQ            *sql.DB
+	Pq            *ent.Client
 	ApiKey        string
 	AllowedOrigin string
 	JwtSecret     string
@@ -30,7 +33,7 @@ type Config struct {
 var (
 	fire *firebase.App
 	rdbs *redis.Client
-	pq   *sql.DB
+	pq   *ent.Client
 	addr string
 	akey string
 	orig string
@@ -48,18 +51,18 @@ func init() {
 	turl = os.Getenv("TURSO_DATABASE_URL")
 	ttkn = os.Getenv("TURSO_AUTH_TOKEN")
 	pdsn = os.Getenv("SB_DSN")
-	fire = initialiazeFirebase()
-	rdbs = initializeRedis()
-	pq = initializePQ()
+	fire = initFirebase()
+	rdbs = initRedis()
+	pq = initPostgres()
 
 }
 
 func LoadConfig() *Config {
 
-	return &Config{Addr: addr, Fire: fire, Rdbs: rdbs, ApiKey: akey, AllowedOrigin: orig, JwtSecret: jwts, PQ: pq}
+	return &Config{Addr: addr, Fire: fire, Rdbs: rdbs, ApiKey: akey, AllowedOrigin: orig, JwtSecret: jwts, Pq: pq}
 }
 
-func initializeRedis() *redis.Client {
+func initRedis() *redis.Client {
 
 	rdba := os.Getenv("RDB_SERV")
 	host := os.Getenv("RDB_HOST")
@@ -73,7 +76,7 @@ func initializeRedis() *redis.Client {
 	return rdb
 }
 
-func initialiazeFirebase() *firebase.App {
+func initFirebase() *firebase.App {
 
 	cwd, err := os.Getwd()
 	utils.ErrLog("fs", "cwd", err)
@@ -101,10 +104,14 @@ func initialiazeFirebase() *firebase.App {
 // 	return db
 // }
 
-func initializePQ() *sql.DB {
-	dataSourceName := pdsn
-	pq, err := sql.Open("postgres", dataSourceName)
+func initPostgres() *ent.Client {
+	// dataSourceName := pdsn
+	dataSourceName := "postgres://xpriori:phtn458@localhost:5432/dpqb?sslmode=disable"
+	db, err := sql.Open("postgres", dataSourceName)
 	utils.ErrLog("pq", "open", err)
 
-	return pq
+	driver := dialect.Postgres
+	client := ent.NewClient(ent.Driver(esql.OpenDB(driver, db)))
+
+	return client
 }

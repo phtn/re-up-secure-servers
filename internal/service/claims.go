@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fast/config"
-	"fast/internal/models"
+	"fast/internal/psql"
 	"fast/pkg/utils"
 
 	"firebase.google.com/go/v4/auth"
@@ -42,7 +42,7 @@ func NewCustomClaims(u *UserCredentials) (*auth.Token, error) {
 	authorized := false
 
 	if role, ok := t.Claims["role"]; ok {
-		if role == "manager" {
+		if role == "manager" || role == "admin" {
 			authorized = true
 		}
 	}
@@ -75,7 +75,7 @@ func NewAdminCustomClaims(u *UserCredentials) (*auth.Token, error) {
 
 	authorized := false
 	verified := t.UID == u.UID
-	is_admin := models.CheckAdminPrivileges(u.UID)
+	is_admin := psql.CheckAdminPrivileges(u.UID)
 
 	if role, ok := t.Claims["role"]; ok {
 		if role == "admin" {

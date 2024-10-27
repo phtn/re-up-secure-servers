@@ -10,3 +10,11 @@ local.db
 local.db-shm
 local.db-wal
 .migrations
+build
+
+# ent
+ent/migrate/migrations
+postgres-data
+turso-dev
+turso-dev-shm
+turso-dev-wal

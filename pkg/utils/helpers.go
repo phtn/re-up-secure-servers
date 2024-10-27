@@ -3,6 +3,7 @@ package utils
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -162,6 +163,14 @@ func (l *Console) Fail(r string, f string, a ...interface{}) {
 		l.log("fail", r, f, a...)
 		return
 	}
+}
+
+func (l *Console) FailR(r string, f string, a ...interface{}) (interface{}, error) {
+	if a[len(a)-1] != nil {
+		l.log("fail", r, f, a...)
+		return nil, errors.New(a[len(a)-1].(string))
+	}
+	return a[1:], nil
 }
 
 func (l *Console) Warn(r string, f string, a ...interface{}) {
