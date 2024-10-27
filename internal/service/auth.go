@@ -155,6 +155,15 @@ func TokenVerification(ctx context.Context, fire *firebase.App, v models.VerifyT
 	return verified
 }
 
+// func CreateAgentCode(v models.VerifyToken) AgentCodeResponse {
+// 	key := shield.NewKey(v.Email)
+// 	url := "https://fastinsure.tech/new/agent/code?key=" + key
+// 	rdb.StoreVal(key, 48, url)
+// 	L.Info("create  ", "agent", "code", url)
+// 	response := AgentCodeResponse{Key: key, URL: url}
+// 	return response
+// }
+
 func NewAgentCode(v models.VerifyToken) AgentCodeResponse {
 	key := shield.NewKey(v.Email)
 	url := "https://fastinsure.tech/new/agent/code?key=" + key

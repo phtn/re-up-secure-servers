@@ -41,9 +41,9 @@ const (
 	DevSetPath       = "/devSet"
 	DevGetPath       = "/devGet"
 	// ADMIN
-	AdminPath        = Admin
-	AdminClaimsPath  = "/admin-claims"
 	AccountTokenPath = "/create-account-token"
+	AdminPath        = Admin
+	AdminClaimsPath  = "/adminClaims"
 )
 
 var (
