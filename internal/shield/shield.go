@@ -9,8 +9,8 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"fast/pkg/utils"
 	"io"
+	math "math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -53,10 +53,10 @@ func ShashItGood(i string) string {
 
 func Encrypt(value []byte, keyPhrase string) []byte {
 	block, err := aes.NewCipher([]byte(HashIt(keyPhrase)))
-	utils.ErrLog(r, "shash", err)
+	L.Fail(r, "shash", err)
 
 	gcm, err := cipher.NewGCM(block)
-	utils.ErrLog(r, "gcm", err)
+	L.Fail(r, "gcm", err)
 
 	nonce := make([]byte, gcm.NonceSize())
 	_, _ = io.ReadFull(rand.Reader, nonce)
@@ -68,16 +68,16 @@ func Encrypt(value []byte, keyPhrase string) []byte {
 func Decrypt(c []byte, keyPhrase string) []byte {
 	hash := HashIt(keyPhrase)
 	block, err := aes.NewCipher([]byte(hash))
-	utils.ErrLog("decrypt", "aes", err)
+	L.Fail("decrypt", "aes", err)
 
 	gcm, err := cipher.NewGCM(block)
-	utils.Fatal("decrypt", "gcm", err)
+	L.Fail("decrypt", "gcm", err)
 	nsize := gcm.NonceSize()
 	nonce, ctext := c[:nsize], c[nsize:]
 
 	original, err := gcm.Open(nil, nonce, ctext, nil)
-	utils.Fatal("decrypt", "gcm-open", err)
-	utils.Ok("decrypt", "open", strings.Split(string(original), "_")[0])
+	L.Fail("decrypt", "gcm-open", err)
+	L.Good("decrypt", "open", strings.Split(string(original), "_")[0])
 
 	return original
 }
@@ -102,7 +102,7 @@ func NewClaimsKey(i string) string {
 func NewKey(i string) string {
 	sep := "--"
 	ids := issuerIds()
-	idx := utils.RandIdx(48)
+	idx := RandIdx(48)
 	iid := ids[idx]
 	key := iid + sep + i + sep + strconv.Itoa(idx)
 	return key
@@ -111,13 +111,13 @@ func NewKey(i string) string {
 func NewJWTSecret() []byte {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
-	utils.ErrLog("jwt", "create-new", err)
+	L.Fail("jwt", "create-new", err)
 	return b
 }
 
 func NewJWTKeyFromStr(secret string) []byte {
 	if secret == "" {
-		utils.Info("jwt", "from-string", "secret must not be an empty string.")
+		L.Good("jwt", "from-string", "secret must not be an empty string.")
 	}
 	h := sha256.New()
 	h.Write([]byte(secret))
@@ -130,7 +130,7 @@ func EncodeBase64(src []byte) string {
 
 func DecodeBase64(s string) []byte {
 	key, err := base64.StdEncoding.DecodeString(s)
-	utils.ErrLog("base64", "decode", err)
+	L.Fail("base64", "decode", err)
 	return key
 }
 
@@ -163,4 +163,10 @@ func NewAccount(u *NewAccountToken) (interface{}, error) {
 	result["token"] = part[1]
 
 	return result, nil
+}
+
+func RandIdx(n int) int {
+	src := math.NewSource(time.Now().UnixNano())
+	math.New(src)
+	return math.Intn(n)
 }

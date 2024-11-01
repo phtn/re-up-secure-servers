@@ -28,11 +28,12 @@ const (
 )
 
 const (
-	AuthPath          = Auth
-	GetUserPath       = "/get-user"
-	CreateTokenPath   = "/create-token"
-	VerifyIdTokenPath = "/verify-id-token"
-	VerifyAuthKeyPath = "/verify-auth-key"
+	AuthPath            = Auth
+	GetUserPath         = "/get-user"
+	CreateTokenPath     = "/create-token"
+	VerifyIdTokenPath   = "/verify-id-token"
+	VerifyAuthKeyPath   = "/verify-auth-key"
+	VerifyAgentCodePath = "/verify-agent-code"
 	// CLAIMS
 	ClaimsPath       = Claims
 	CustomClaimsPath = "/create-custom-claims"
@@ -91,6 +92,16 @@ func CreateAgentCode(c *fiber.Ctx) error {
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
 	}
 	result := service.NewAgentCode(v)
+	data := utils.JsonData{Data: result}
+	return utils.FiberResponse(c, utils.OK, nil, data)
+}
+
+func VerifyAgentCode(c *fiber.Ctx) error {
+	var p *models.HCodeParams
+	if err := c.BodyParser(&p); err != nil {
+		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
+	}
+	result := service.VerifyAgentCode(p)
 	data := utils.JsonData{Data: result}
 	return utils.FiberResponse(c, utils.OK, nil, data)
 }

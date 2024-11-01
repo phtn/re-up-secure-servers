@@ -41,6 +41,7 @@ var (
 	turl string
 	ttkn string
 	pdsn string
+	L    = utils.NewConsole()
 )
 
 func init() {
@@ -70,7 +71,7 @@ func initRedis() *redis.Client {
 	pass := os.Getenv("RDB_PASS")
 
 	opt, err := redis.ParseURL(rdba + pass + host + port)
-	utils.ErrLog("rdb", "config", err)
+	L.Fail("rdb", "config", err)
 
 	rdb := redis.NewClient(opt)
 	return rdb
@@ -79,7 +80,7 @@ func initRedis() *redis.Client {
 func initFirebase() *firebase.App {
 
 	cwd, err := os.Getwd()
-	utils.ErrLog("fs", "cwd", err)
+	L.Fail("fs", "cwd", err)
 
 	pathToFile, exists := os.LookupEnv("SA_FILEPATH")
 	if !exists {
@@ -91,7 +92,7 @@ func initFirebase() *firebase.App {
 	opt := option.WithCredentialsFile(sa)
 
 	fire, err := firebase.NewApp(context.Background(), nil, opt)
-	utils.ErrLog("init", "firebase", err)
+	L.Fail("init", "firebase", err)
 
 	return fire
 }
@@ -100,7 +101,7 @@ func initFirebase() *firebase.App {
 // 	// dataSourceName := turl + ttkn
 // 	dataSourceName := "file:./local.db"
 // 	db, err := sql.Open("libsql", dataSourceName)
-// 	utils.ErrLog("db", "open", err)
+// 	L.Fail("db", "open", err)
 // 	return db
 // }
 
@@ -108,7 +109,7 @@ func initPostgres() *ent.Client {
 	// dataSourceName := pdsn
 	dataSourceName := "postgres://xpriori:phtn458@localhost:5432/dpqb?sslmode=disable"
 	db, err := sql.Open("postgres", dataSourceName)
-	utils.ErrLog("pq", "open", err)
+	L.Fail("pq", "open", err)
 
 	driver := dialect.Postgres
 	client := ent.NewClient(ent.Driver(esql.OpenDB(driver, db)))

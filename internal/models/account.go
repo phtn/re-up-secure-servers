@@ -12,6 +12,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var (
+	L = utils.NewConsole()
+)
+
 type Role string
 
 const (
@@ -66,7 +70,7 @@ func NewAccountCustomClaims(acct Account) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwts)
-	utils.ErrLog("claim", "unable to signed token", err)
+	L.Fail("claim", "unable to signed token", err)
 
 	return verifyToken(tokenString)
 }
@@ -90,13 +94,13 @@ func verifyToken(tokenString string) (string, error) {
 func storeClaims(key string, v *CustomClaims) {
 
 	value, err := json.Marshal(&v)
-	utils.ErrLog("json", "marshal-store-claims", err)
+	L.Fail("json", "marshal-store-claims", err)
 
 	ctx := context.Background()
 	err = rdb.Set(ctx, key, value, 24*7*time.Hour).Err()
-	utils.ErrLog("redis", "set store-claims", err)
+	L.Fail("redis", "set store-claims", err)
 
-	utils.OkLog("redis", "set complete", key, err)
+	L.Good("redis", "set complete", key, err)
 }
 
 func GenerateRefreshToken(user Account, key []byte) (string, error) {

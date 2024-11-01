@@ -17,7 +17,6 @@ var (
 	good  = clr.Color("#10b981") // 500
 	info  = clr.Color("#38bdf8") // 400
 	debug = clr.Color("#6366f1") // 500
-
 )
 
 func Colorize(s string, c termenv.Color) string {

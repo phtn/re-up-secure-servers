@@ -20,6 +20,18 @@ func TestEncoding(label string) {
 	L.Info(label, "encoded", encoded)
 }
 
+func TestBase64(label string) {
+	str := []byte(label)
+	encoded := EncodeBase64(str)
+	encrypted := Encrypt(str, S)
+	L.Info(label, "encoded", encoded)
+	L.Info("ecrypted", label, string(encrypted))
+	decoded := DecodeBase64(encoded)
+	decrypted := Decrypt(encrypted, S)
+	L.Info(label, "decoded", string(decoded))
+	L.Info("decrypted", label, string(decrypted))
+}
+
 func TestJWT(label string) {
 	jsonwebtoken := NewJWTKeyFromStr(S)
 	encoded := EncodeBase64(jsonwebtoken)
