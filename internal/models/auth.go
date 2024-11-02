@@ -19,9 +19,10 @@ type UserRefresh struct {
 }
 
 type VerifyToken struct {
-	IDToken string `json:"id_token"`
-	UID     string `json:"uid"`
-	Email   string `json:"email"`
+	IDToken   string `json:"id_token"`
+	UID       string `json:"uid"`
+	Email     string `json:"email"`
+	GroupCode string `json:"group_code,omitempty"`
 }
 
 type VerifyWithAuthKey struct {
@@ -40,6 +41,7 @@ type VResult struct {
 	Key      string `json:"key"`
 	Verified bool   `json:"verified"`
 	Exp      int16  `json:"exp"`
+	IsActive bool   `josn:"is_active,omitempty"`
 }
 
 type V interface{}

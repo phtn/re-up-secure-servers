@@ -19,17 +19,19 @@ type Account struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
-	Name *string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	// Nickname holds the value of the "nickname" field.
-	Nickname *string `json:"nickname,omitempty"`
+	Nickname string `json:"nickname,omitempty"`
 	// Email holds the value of the "email" field.
-	Email *string `json:"email,omitempty"`
+	Email string `json:"email,omitempty"`
 	// PhoneNumber holds the value of the "phone_number" field.
-	PhoneNumber *string `json:"phone_number,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty"`
 	// PhotoURL holds the value of the "photo_url" field.
-	PhotoURL *string `json:"photo_url,omitempty"`
+	PhotoURL string `json:"photo_url,omitempty"`
 	// UID holds the value of the "uid" field.
 	UID string `json:"uid,omitempty"`
+	// AddressID holds the value of the "address_id" field.
+	AddressID string `json:"address_id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -69,7 +71,7 @@ func (*Account) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case account.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case account.FieldName, account.FieldNickname, account.FieldEmail, account.FieldPhoneNumber, account.FieldPhotoURL, account.FieldUID, account.FieldAPIKey:
+		case account.FieldName, account.FieldNickname, account.FieldEmail, account.FieldPhoneNumber, account.FieldPhotoURL, account.FieldUID, account.FieldAddressID, account.FieldAPIKey:
 			values[i] = new(sql.NullString)
 		case account.FieldCreateTime, account.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -100,42 +102,43 @@ func (a *Account) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				a.Name = new(string)
-				*a.Name = value.String
+				a.Name = value.String
 			}
 		case account.FieldNickname:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field nickname", values[i])
 			} else if value.Valid {
-				a.Nickname = new(string)
-				*a.Nickname = value.String
+				a.Nickname = value.String
 			}
 		case account.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
-				a.Email = new(string)
-				*a.Email = value.String
+				a.Email = value.String
 			}
 		case account.FieldPhoneNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field phone_number", values[i])
 			} else if value.Valid {
-				a.PhoneNumber = new(string)
-				*a.PhoneNumber = value.String
+				a.PhoneNumber = value.String
 			}
 		case account.FieldPhotoURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field photo_url", values[i])
 			} else if value.Valid {
-				a.PhotoURL = new(string)
-				*a.PhotoURL = value.String
+				a.PhotoURL = value.String
 			}
 		case account.FieldUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field uid", values[i])
 			} else if value.Valid {
 				a.UID = value.String
+			}
+		case account.FieldAddressID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field address_id", values[i])
+			} else if value.Valid {
+				a.AddressID = value.String
 			}
 		case account.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -202,33 +205,26 @@ func (a *Account) String() string {
 	var builder strings.Builder
 	builder.WriteString("Account(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", a.ID))
-	if v := a.Name; v != nil {
-		builder.WriteString("name=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("name=")
+	builder.WriteString(a.Name)
 	builder.WriteString(", ")
-	if v := a.Nickname; v != nil {
-		builder.WriteString("nickname=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("nickname=")
+	builder.WriteString(a.Nickname)
 	builder.WriteString(", ")
-	if v := a.Email; v != nil {
-		builder.WriteString("email=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("email=")
+	builder.WriteString(a.Email)
 	builder.WriteString(", ")
-	if v := a.PhoneNumber; v != nil {
-		builder.WriteString("phone_number=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("phone_number=")
+	builder.WriteString(a.PhoneNumber)
 	builder.WriteString(", ")
-	if v := a.PhotoURL; v != nil {
-		builder.WriteString("photo_url=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("photo_url=")
+	builder.WriteString(a.PhotoURL)
 	builder.WriteString(", ")
 	builder.WriteString("uid=")
 	builder.WriteString(a.UID)
+	builder.WriteString(", ")
+	builder.WriteString("address_id=")
+	builder.WriteString(a.AddressID)
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(a.CreateTime.Format(time.ANSIC))

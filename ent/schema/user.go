@@ -27,6 +27,8 @@ func (User) Fields() []ent.Field {
 			Default(uuid.New),
 		field.UUID("group_id", uuid.UUID{}).
 			Unique(),
+		field.String("group_code").
+			Unique(),
 		field.Bool("is_active").
 			Default(true),
 	}
@@ -39,8 +41,8 @@ func (User) Indexes() []ent.Index {
 			Unique(),
 		index.Fields("uid").
 			Unique(),
-		index.Fields("group_id").
-			Unique(),
+		index.Fields("group_id"),
+		index.Fields("group_code"),
 	}
 }
 

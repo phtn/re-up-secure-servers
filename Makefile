@@ -54,6 +54,15 @@ atlasl:
 	--latest 1 \
 	-w
 
+test:
+	go test -v ./...
+
+tcover:
+	go test -cover
+
+rm:
+	rm -rf ./build/fast
 
 clean:
-	rm -rf ./build/fast
+	@go clean --cache \
+	go clean --modcache

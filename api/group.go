@@ -15,14 +15,14 @@ func CreateGroup(c *fiber.Ctx) error {
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
 	}
 	data := ent.Group{
-		Name:        &v.Name,
-		Nickname:    &v.Nickname,
-		PhoneNumber: &v.PhoneNumber,
-		Email:       &v.Email,
-		PhotoURL:    &v.PhotoURL,
+		Name:        v.Name,
+		Nickname:    v.Nickname,
+		PhoneNumber: v.PhoneNumber,
+		Email:       v.Email,
+		PhotoURL:    v.PhotoURL,
 	}
 
-	result := psql.CreateNewGroup(*data.Name, *data.Email, *data.PhoneNumber, v.UID, v.GroupCode, data.AccountID, *data.PhotoURL, true)
+	result := psql.CreateNewGroup(data.Name, data.Email, data.PhoneNumber, v.UID, v.GroupCode, data.AccountID, data.PhotoURL, true)
 
 	return utils.FiberResponse(c, utils.OK, nil, utils.JsonData{Data: map[string]interface{}{"group_uid": result, "status": "success"}})
 }

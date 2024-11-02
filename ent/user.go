@@ -20,23 +20,27 @@ type User struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
-	Name *string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	// Nickname holds the value of the "nickname" field.
-	Nickname *string `json:"nickname,omitempty"`
+	Nickname string `json:"nickname,omitempty"`
 	// Email holds the value of the "email" field.
-	Email *string `json:"email,omitempty"`
+	Email string `json:"email,omitempty"`
 	// PhoneNumber holds the value of the "phone_number" field.
-	PhoneNumber *string `json:"phone_number,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty"`
 	// PhotoURL holds the value of the "photo_url" field.
-	PhotoURL *string `json:"photo_url,omitempty"`
+	PhotoURL string `json:"photo_url,omitempty"`
 	// UID holds the value of the "uid" field.
 	UID string `json:"uid,omitempty"`
+	// AddressID holds the value of the "address_id" field.
+	AddressID string `json:"address_id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// GroupID holds the value of the "group_id" field.
 	GroupID uuid.UUID `json:"group_id,omitempty"`
+	// GroupCode holds the value of the "group_code" field.
+	GroupCode string `json:"group_code,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -72,7 +76,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case user.FieldName, user.FieldNickname, user.FieldEmail, user.FieldPhoneNumber, user.FieldPhotoURL, user.FieldUID:
+		case user.FieldName, user.FieldNickname, user.FieldEmail, user.FieldPhoneNumber, user.FieldPhotoURL, user.FieldUID, user.FieldAddressID, user.FieldGroupCode:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -103,42 +107,43 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				u.Name = new(string)
-				*u.Name = value.String
+				u.Name = value.String
 			}
 		case user.FieldNickname:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field nickname", values[i])
 			} else if value.Valid {
-				u.Nickname = new(string)
-				*u.Nickname = value.String
+				u.Nickname = value.String
 			}
 		case user.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
-				u.Email = new(string)
-				*u.Email = value.String
+				u.Email = value.String
 			}
 		case user.FieldPhoneNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field phone_number", values[i])
 			} else if value.Valid {
-				u.PhoneNumber = new(string)
-				*u.PhoneNumber = value.String
+				u.PhoneNumber = value.String
 			}
 		case user.FieldPhotoURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field photo_url", values[i])
 			} else if value.Valid {
-				u.PhotoURL = new(string)
-				*u.PhotoURL = value.String
+				u.PhotoURL = value.String
 			}
 		case user.FieldUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field uid", values[i])
 			} else if value.Valid {
 				u.UID = value.String
+			}
+		case user.FieldAddressID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field address_id", values[i])
+			} else if value.Valid {
+				u.AddressID = value.String
 			}
 		case user.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -157,6 +162,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field group_id", values[i])
 			} else if value != nil {
 				u.GroupID = *value
+			}
+		case user.FieldGroupCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field group_code", values[i])
+			} else if value.Valid {
+				u.GroupCode = value.String
 			}
 		case user.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -205,33 +216,26 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
-	if v := u.Name; v != nil {
-		builder.WriteString("name=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("name=")
+	builder.WriteString(u.Name)
 	builder.WriteString(", ")
-	if v := u.Nickname; v != nil {
-		builder.WriteString("nickname=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("nickname=")
+	builder.WriteString(u.Nickname)
 	builder.WriteString(", ")
-	if v := u.Email; v != nil {
-		builder.WriteString("email=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("email=")
+	builder.WriteString(u.Email)
 	builder.WriteString(", ")
-	if v := u.PhoneNumber; v != nil {
-		builder.WriteString("phone_number=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("phone_number=")
+	builder.WriteString(u.PhoneNumber)
 	builder.WriteString(", ")
-	if v := u.PhotoURL; v != nil {
-		builder.WriteString("photo_url=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("photo_url=")
+	builder.WriteString(u.PhotoURL)
 	builder.WriteString(", ")
 	builder.WriteString("uid=")
 	builder.WriteString(u.UID)
+	builder.WriteString(", ")
+	builder.WriteString("address_id=")
+	builder.WriteString(u.AddressID)
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(u.CreateTime.Format(time.ANSIC))
@@ -241,6 +245,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("group_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.GroupID))
+	builder.WriteString(", ")
+	builder.WriteString("group_code=")
+	builder.WriteString(u.GroupCode)
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", u.IsActive))

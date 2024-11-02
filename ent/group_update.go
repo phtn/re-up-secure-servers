@@ -44,6 +44,12 @@ func (gu *GroupUpdate) SetNillableName(s *string) *GroupUpdate {
 	return gu
 }
 
+// ClearName clears the value of the "name" field.
+func (gu *GroupUpdate) ClearName() *GroupUpdate {
+	gu.mutation.ClearName()
+	return gu
+}
+
 // SetNickname sets the "nickname" field.
 func (gu *GroupUpdate) SetNickname(s string) *GroupUpdate {
 	gu.mutation.SetNickname(s)
@@ -55,6 +61,12 @@ func (gu *GroupUpdate) SetNillableNickname(s *string) *GroupUpdate {
 	if s != nil {
 		gu.SetNickname(*s)
 	}
+	return gu
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (gu *GroupUpdate) ClearNickname() *GroupUpdate {
+	gu.mutation.ClearNickname()
 	return gu
 }
 
@@ -72,6 +84,12 @@ func (gu *GroupUpdate) SetNillableEmail(s *string) *GroupUpdate {
 	return gu
 }
 
+// ClearEmail clears the value of the "email" field.
+func (gu *GroupUpdate) ClearEmail() *GroupUpdate {
+	gu.mutation.ClearEmail()
+	return gu
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (gu *GroupUpdate) SetPhoneNumber(s string) *GroupUpdate {
 	gu.mutation.SetPhoneNumber(s)
@@ -83,6 +101,12 @@ func (gu *GroupUpdate) SetNillablePhoneNumber(s *string) *GroupUpdate {
 	if s != nil {
 		gu.SetPhoneNumber(*s)
 	}
+	return gu
+}
+
+// ClearPhoneNumber clears the value of the "phone_number" field.
+func (gu *GroupUpdate) ClearPhoneNumber() *GroupUpdate {
+	gu.mutation.ClearPhoneNumber()
 	return gu
 }
 
@@ -100,6 +124,12 @@ func (gu *GroupUpdate) SetNillablePhotoURL(s *string) *GroupUpdate {
 	return gu
 }
 
+// ClearPhotoURL clears the value of the "photo_url" field.
+func (gu *GroupUpdate) ClearPhotoURL() *GroupUpdate {
+	gu.mutation.ClearPhotoURL()
+	return gu
+}
+
 // SetUID sets the "uid" field.
 func (gu *GroupUpdate) SetUID(s string) *GroupUpdate {
 	gu.mutation.SetUID(s)
@@ -110,6 +140,20 @@ func (gu *GroupUpdate) SetUID(s string) *GroupUpdate {
 func (gu *GroupUpdate) SetNillableUID(s *string) *GroupUpdate {
 	if s != nil {
 		gu.SetUID(*s)
+	}
+	return gu
+}
+
+// SetAddressID sets the "address_id" field.
+func (gu *GroupUpdate) SetAddressID(s string) *GroupUpdate {
+	gu.mutation.SetAddressID(s)
+	return gu
+}
+
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (gu *GroupUpdate) SetNillableAddressID(s *string) *GroupUpdate {
+	if s != nil {
+		gu.SetAddressID(*s)
 	}
 	return gu
 }
@@ -287,6 +331,11 @@ func (gu *GroupUpdate) check() error {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "Group.uid": %w`, err)}
 		}
 	}
+	if v, ok := gu.mutation.AddressID(); ok {
+		if err := group.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "Group.address_id": %w`, err)}
+		}
+	}
 	if v, ok := gu.mutation.GroupCode(); ok {
 		if err := group.GroupCodeValidator(v); err != nil {
 			return &ValidationError{Name: "group_code", err: fmt.Errorf(`ent: validator failed for field "Group.group_code": %w`, err)}
@@ -318,20 +367,38 @@ func (gu *GroupUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := gu.mutation.Name(); ok {
 		_spec.SetField(group.FieldName, field.TypeString, value)
 	}
+	if gu.mutation.NameCleared() {
+		_spec.ClearField(group.FieldName, field.TypeString)
+	}
 	if value, ok := gu.mutation.Nickname(); ok {
 		_spec.SetField(group.FieldNickname, field.TypeString, value)
+	}
+	if gu.mutation.NicknameCleared() {
+		_spec.ClearField(group.FieldNickname, field.TypeString)
 	}
 	if value, ok := gu.mutation.Email(); ok {
 		_spec.SetField(group.FieldEmail, field.TypeString, value)
 	}
+	if gu.mutation.EmailCleared() {
+		_spec.ClearField(group.FieldEmail, field.TypeString)
+	}
 	if value, ok := gu.mutation.PhoneNumber(); ok {
 		_spec.SetField(group.FieldPhoneNumber, field.TypeString, value)
+	}
+	if gu.mutation.PhoneNumberCleared() {
+		_spec.ClearField(group.FieldPhoneNumber, field.TypeString)
 	}
 	if value, ok := gu.mutation.PhotoURL(); ok {
 		_spec.SetField(group.FieldPhotoURL, field.TypeString, value)
 	}
+	if gu.mutation.PhotoURLCleared() {
+		_spec.ClearField(group.FieldPhotoURL, field.TypeString)
+	}
 	if value, ok := gu.mutation.UID(); ok {
 		_spec.SetField(group.FieldUID, field.TypeString, value)
+	}
+	if value, ok := gu.mutation.AddressID(); ok {
+		_spec.SetField(group.FieldAddressID, field.TypeString, value)
 	}
 	if value, ok := gu.mutation.GroupCode(); ok {
 		_spec.SetField(group.FieldGroupCode, field.TypeString, value)
@@ -453,6 +520,12 @@ func (guo *GroupUpdateOne) SetNillableName(s *string) *GroupUpdateOne {
 	return guo
 }
 
+// ClearName clears the value of the "name" field.
+func (guo *GroupUpdateOne) ClearName() *GroupUpdateOne {
+	guo.mutation.ClearName()
+	return guo
+}
+
 // SetNickname sets the "nickname" field.
 func (guo *GroupUpdateOne) SetNickname(s string) *GroupUpdateOne {
 	guo.mutation.SetNickname(s)
@@ -464,6 +537,12 @@ func (guo *GroupUpdateOne) SetNillableNickname(s *string) *GroupUpdateOne {
 	if s != nil {
 		guo.SetNickname(*s)
 	}
+	return guo
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (guo *GroupUpdateOne) ClearNickname() *GroupUpdateOne {
+	guo.mutation.ClearNickname()
 	return guo
 }
 
@@ -481,6 +560,12 @@ func (guo *GroupUpdateOne) SetNillableEmail(s *string) *GroupUpdateOne {
 	return guo
 }
 
+// ClearEmail clears the value of the "email" field.
+func (guo *GroupUpdateOne) ClearEmail() *GroupUpdateOne {
+	guo.mutation.ClearEmail()
+	return guo
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (guo *GroupUpdateOne) SetPhoneNumber(s string) *GroupUpdateOne {
 	guo.mutation.SetPhoneNumber(s)
@@ -492,6 +577,12 @@ func (guo *GroupUpdateOne) SetNillablePhoneNumber(s *string) *GroupUpdateOne {
 	if s != nil {
 		guo.SetPhoneNumber(*s)
 	}
+	return guo
+}
+
+// ClearPhoneNumber clears the value of the "phone_number" field.
+func (guo *GroupUpdateOne) ClearPhoneNumber() *GroupUpdateOne {
+	guo.mutation.ClearPhoneNumber()
 	return guo
 }
 
@@ -509,6 +600,12 @@ func (guo *GroupUpdateOne) SetNillablePhotoURL(s *string) *GroupUpdateOne {
 	return guo
 }
 
+// ClearPhotoURL clears the value of the "photo_url" field.
+func (guo *GroupUpdateOne) ClearPhotoURL() *GroupUpdateOne {
+	guo.mutation.ClearPhotoURL()
+	return guo
+}
+
 // SetUID sets the "uid" field.
 func (guo *GroupUpdateOne) SetUID(s string) *GroupUpdateOne {
 	guo.mutation.SetUID(s)
@@ -519,6 +616,20 @@ func (guo *GroupUpdateOne) SetUID(s string) *GroupUpdateOne {
 func (guo *GroupUpdateOne) SetNillableUID(s *string) *GroupUpdateOne {
 	if s != nil {
 		guo.SetUID(*s)
+	}
+	return guo
+}
+
+// SetAddressID sets the "address_id" field.
+func (guo *GroupUpdateOne) SetAddressID(s string) *GroupUpdateOne {
+	guo.mutation.SetAddressID(s)
+	return guo
+}
+
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (guo *GroupUpdateOne) SetNillableAddressID(s *string) *GroupUpdateOne {
+	if s != nil {
+		guo.SetAddressID(*s)
 	}
 	return guo
 }
@@ -709,6 +820,11 @@ func (guo *GroupUpdateOne) check() error {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "Group.uid": %w`, err)}
 		}
 	}
+	if v, ok := guo.mutation.AddressID(); ok {
+		if err := group.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "Group.address_id": %w`, err)}
+		}
+	}
 	if v, ok := guo.mutation.GroupCode(); ok {
 		if err := group.GroupCodeValidator(v); err != nil {
 			return &ValidationError{Name: "group_code", err: fmt.Errorf(`ent: validator failed for field "Group.group_code": %w`, err)}
@@ -757,20 +873,38 @@ func (guo *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error
 	if value, ok := guo.mutation.Name(); ok {
 		_spec.SetField(group.FieldName, field.TypeString, value)
 	}
+	if guo.mutation.NameCleared() {
+		_spec.ClearField(group.FieldName, field.TypeString)
+	}
 	if value, ok := guo.mutation.Nickname(); ok {
 		_spec.SetField(group.FieldNickname, field.TypeString, value)
+	}
+	if guo.mutation.NicknameCleared() {
+		_spec.ClearField(group.FieldNickname, field.TypeString)
 	}
 	if value, ok := guo.mutation.Email(); ok {
 		_spec.SetField(group.FieldEmail, field.TypeString, value)
 	}
+	if guo.mutation.EmailCleared() {
+		_spec.ClearField(group.FieldEmail, field.TypeString)
+	}
 	if value, ok := guo.mutation.PhoneNumber(); ok {
 		_spec.SetField(group.FieldPhoneNumber, field.TypeString, value)
+	}
+	if guo.mutation.PhoneNumberCleared() {
+		_spec.ClearField(group.FieldPhoneNumber, field.TypeString)
 	}
 	if value, ok := guo.mutation.PhotoURL(); ok {
 		_spec.SetField(group.FieldPhotoURL, field.TypeString, value)
 	}
+	if guo.mutation.PhotoURLCleared() {
+		_spec.ClearField(group.FieldPhotoURL, field.TypeString)
+	}
 	if value, ok := guo.mutation.UID(); ok {
 		_spec.SetField(group.FieldUID, field.TypeString, value)
+	}
+	if value, ok := guo.mutation.AddressID(); ok {
+		_spec.SetField(group.FieldAddressID, field.TypeString, value)
 	}
 	if value, ok := guo.mutation.GroupCode(); ok {
 		_spec.SetField(group.FieldGroupCode, field.TypeString, value)

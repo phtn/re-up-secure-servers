@@ -43,6 +43,12 @@ func (uu *UserUpdate) SetNillableName(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearName clears the value of the "name" field.
+func (uu *UserUpdate) ClearName() *UserUpdate {
+	uu.mutation.ClearName()
+	return uu
+}
+
 // SetNickname sets the "nickname" field.
 func (uu *UserUpdate) SetNickname(s string) *UserUpdate {
 	uu.mutation.SetNickname(s)
@@ -54,6 +60,12 @@ func (uu *UserUpdate) SetNillableNickname(s *string) *UserUpdate {
 	if s != nil {
 		uu.SetNickname(*s)
 	}
+	return uu
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (uu *UserUpdate) ClearNickname() *UserUpdate {
+	uu.mutation.ClearNickname()
 	return uu
 }
 
@@ -71,6 +83,12 @@ func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearEmail clears the value of the "email" field.
+func (uu *UserUpdate) ClearEmail() *UserUpdate {
+	uu.mutation.ClearEmail()
+	return uu
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (uu *UserUpdate) SetPhoneNumber(s string) *UserUpdate {
 	uu.mutation.SetPhoneNumber(s)
@@ -82,6 +100,12 @@ func (uu *UserUpdate) SetNillablePhoneNumber(s *string) *UserUpdate {
 	if s != nil {
 		uu.SetPhoneNumber(*s)
 	}
+	return uu
+}
+
+// ClearPhoneNumber clears the value of the "phone_number" field.
+func (uu *UserUpdate) ClearPhoneNumber() *UserUpdate {
+	uu.mutation.ClearPhoneNumber()
 	return uu
 }
 
@@ -99,6 +123,12 @@ func (uu *UserUpdate) SetNillablePhotoURL(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearPhotoURL clears the value of the "photo_url" field.
+func (uu *UserUpdate) ClearPhotoURL() *UserUpdate {
+	uu.mutation.ClearPhotoURL()
+	return uu
+}
+
 // SetUID sets the "uid" field.
 func (uu *UserUpdate) SetUID(s string) *UserUpdate {
 	uu.mutation.SetUID(s)
@@ -113,6 +143,20 @@ func (uu *UserUpdate) SetNillableUID(s *string) *UserUpdate {
 	return uu
 }
 
+// SetAddressID sets the "address_id" field.
+func (uu *UserUpdate) SetAddressID(s string) *UserUpdate {
+	uu.mutation.SetAddressID(s)
+	return uu
+}
+
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableAddressID(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetAddressID(*s)
+	}
+	return uu
+}
+
 // SetGroupID sets the "group_id" field.
 func (uu *UserUpdate) SetGroupID(u uuid.UUID) *UserUpdate {
 	uu.mutation.SetGroupID(u)
@@ -123,6 +167,20 @@ func (uu *UserUpdate) SetGroupID(u uuid.UUID) *UserUpdate {
 func (uu *UserUpdate) SetNillableGroupID(u *uuid.UUID) *UserUpdate {
 	if u != nil {
 		uu.SetGroupID(*u)
+	}
+	return uu
+}
+
+// SetGroupCode sets the "group_code" field.
+func (uu *UserUpdate) SetGroupCode(s string) *UserUpdate {
+	uu.mutation.SetGroupCode(s)
+	return uu
+}
+
+// SetNillableGroupCode sets the "group_code" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableGroupCode(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetGroupCode(*s)
 	}
 	return uu
 }
@@ -216,6 +274,11 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "User.uid": %w`, err)}
 		}
 	}
+	if v, ok := uu.mutation.AddressID(); ok {
+		if err := user.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "User.address_id": %w`, err)}
+		}
+	}
 	if uu.mutation.GroupCleared() && len(uu.mutation.GroupIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "User.group"`)
 	}
@@ -237,20 +300,41 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
+	if uu.mutation.NameCleared() {
+		_spec.ClearField(user.FieldName, field.TypeString)
+	}
 	if value, ok := uu.mutation.Nickname(); ok {
 		_spec.SetField(user.FieldNickname, field.TypeString, value)
+	}
+	if uu.mutation.NicknameCleared() {
+		_spec.ClearField(user.FieldNickname, field.TypeString)
 	}
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
+	if uu.mutation.EmailCleared() {
+		_spec.ClearField(user.FieldEmail, field.TypeString)
+	}
 	if value, ok := uu.mutation.PhoneNumber(); ok {
 		_spec.SetField(user.FieldPhoneNumber, field.TypeString, value)
+	}
+	if uu.mutation.PhoneNumberCleared() {
+		_spec.ClearField(user.FieldPhoneNumber, field.TypeString)
 	}
 	if value, ok := uu.mutation.PhotoURL(); ok {
 		_spec.SetField(user.FieldPhotoURL, field.TypeString, value)
 	}
+	if uu.mutation.PhotoURLCleared() {
+		_spec.ClearField(user.FieldPhotoURL, field.TypeString)
+	}
 	if value, ok := uu.mutation.UID(); ok {
 		_spec.SetField(user.FieldUID, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.AddressID(); ok {
+		_spec.SetField(user.FieldAddressID, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.GroupCode(); ok {
+		_spec.SetField(user.FieldGroupCode, field.TypeString, value)
 	}
 	if value, ok := uu.mutation.IsActive(); ok {
 		_spec.SetField(user.FieldIsActive, field.TypeBool, value)
@@ -318,6 +402,12 @@ func (uuo *UserUpdateOne) SetNillableName(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearName clears the value of the "name" field.
+func (uuo *UserUpdateOne) ClearName() *UserUpdateOne {
+	uuo.mutation.ClearName()
+	return uuo
+}
+
 // SetNickname sets the "nickname" field.
 func (uuo *UserUpdateOne) SetNickname(s string) *UserUpdateOne {
 	uuo.mutation.SetNickname(s)
@@ -329,6 +419,12 @@ func (uuo *UserUpdateOne) SetNillableNickname(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetNickname(*s)
 	}
+	return uuo
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (uuo *UserUpdateOne) ClearNickname() *UserUpdateOne {
+	uuo.mutation.ClearNickname()
 	return uuo
 }
 
@@ -346,6 +442,12 @@ func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearEmail clears the value of the "email" field.
+func (uuo *UserUpdateOne) ClearEmail() *UserUpdateOne {
+	uuo.mutation.ClearEmail()
+	return uuo
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (uuo *UserUpdateOne) SetPhoneNumber(s string) *UserUpdateOne {
 	uuo.mutation.SetPhoneNumber(s)
@@ -357,6 +459,12 @@ func (uuo *UserUpdateOne) SetNillablePhoneNumber(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetPhoneNumber(*s)
 	}
+	return uuo
+}
+
+// ClearPhoneNumber clears the value of the "phone_number" field.
+func (uuo *UserUpdateOne) ClearPhoneNumber() *UserUpdateOne {
+	uuo.mutation.ClearPhoneNumber()
 	return uuo
 }
 
@@ -374,6 +482,12 @@ func (uuo *UserUpdateOne) SetNillablePhotoURL(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearPhotoURL clears the value of the "photo_url" field.
+func (uuo *UserUpdateOne) ClearPhotoURL() *UserUpdateOne {
+	uuo.mutation.ClearPhotoURL()
+	return uuo
+}
+
 // SetUID sets the "uid" field.
 func (uuo *UserUpdateOne) SetUID(s string) *UserUpdateOne {
 	uuo.mutation.SetUID(s)
@@ -388,6 +502,20 @@ func (uuo *UserUpdateOne) SetNillableUID(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// SetAddressID sets the "address_id" field.
+func (uuo *UserUpdateOne) SetAddressID(s string) *UserUpdateOne {
+	uuo.mutation.SetAddressID(s)
+	return uuo
+}
+
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAddressID(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetAddressID(*s)
+	}
+	return uuo
+}
+
 // SetGroupID sets the "group_id" field.
 func (uuo *UserUpdateOne) SetGroupID(u uuid.UUID) *UserUpdateOne {
 	uuo.mutation.SetGroupID(u)
@@ -398,6 +526,20 @@ func (uuo *UserUpdateOne) SetGroupID(u uuid.UUID) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetNillableGroupID(u *uuid.UUID) *UserUpdateOne {
 	if u != nil {
 		uuo.SetGroupID(*u)
+	}
+	return uuo
+}
+
+// SetGroupCode sets the "group_code" field.
+func (uuo *UserUpdateOne) SetGroupCode(s string) *UserUpdateOne {
+	uuo.mutation.SetGroupCode(s)
+	return uuo
+}
+
+// SetNillableGroupCode sets the "group_code" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableGroupCode(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetGroupCode(*s)
 	}
 	return uuo
 }
@@ -504,6 +646,11 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "User.uid": %w`, err)}
 		}
 	}
+	if v, ok := uuo.mutation.AddressID(); ok {
+		if err := user.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "User.address_id": %w`, err)}
+		}
+	}
 	if uuo.mutation.GroupCleared() && len(uuo.mutation.GroupIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "User.group"`)
 	}
@@ -542,20 +689,41 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
 	}
+	if uuo.mutation.NameCleared() {
+		_spec.ClearField(user.FieldName, field.TypeString)
+	}
 	if value, ok := uuo.mutation.Nickname(); ok {
 		_spec.SetField(user.FieldNickname, field.TypeString, value)
+	}
+	if uuo.mutation.NicknameCleared() {
+		_spec.ClearField(user.FieldNickname, field.TypeString)
 	}
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
+	if uuo.mutation.EmailCleared() {
+		_spec.ClearField(user.FieldEmail, field.TypeString)
+	}
 	if value, ok := uuo.mutation.PhoneNumber(); ok {
 		_spec.SetField(user.FieldPhoneNumber, field.TypeString, value)
+	}
+	if uuo.mutation.PhoneNumberCleared() {
+		_spec.ClearField(user.FieldPhoneNumber, field.TypeString)
 	}
 	if value, ok := uuo.mutation.PhotoURL(); ok {
 		_spec.SetField(user.FieldPhotoURL, field.TypeString, value)
 	}
+	if uuo.mutation.PhotoURLCleared() {
+		_spec.ClearField(user.FieldPhotoURL, field.TypeString)
+	}
 	if value, ok := uuo.mutation.UID(); ok {
 		_spec.SetField(user.FieldUID, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.AddressID(); ok {
+		_spec.SetField(user.FieldAddressID, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.GroupCode(); ok {
+		_spec.SetField(user.FieldGroupCode, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.IsActive(); ok {
 		_spec.SetField(user.FieldIsActive, field.TypeBool, value)

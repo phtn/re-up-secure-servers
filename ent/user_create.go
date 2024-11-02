@@ -56,9 +56,25 @@ func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	return uc
 }
 
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
+	if s != nil {
+		uc.SetEmail(*s)
+	}
+	return uc
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (uc *UserCreate) SetPhoneNumber(s string) *UserCreate {
 	uc.mutation.SetPhoneNumber(s)
+	return uc
+}
+
+// SetNillablePhoneNumber sets the "phone_number" field if the given value is not nil.
+func (uc *UserCreate) SetNillablePhoneNumber(s *string) *UserCreate {
+	if s != nil {
+		uc.SetPhoneNumber(*s)
+	}
 	return uc
 }
 
@@ -68,9 +84,23 @@ func (uc *UserCreate) SetPhotoURL(s string) *UserCreate {
 	return uc
 }
 
+// SetNillablePhotoURL sets the "photo_url" field if the given value is not nil.
+func (uc *UserCreate) SetNillablePhotoURL(s *string) *UserCreate {
+	if s != nil {
+		uc.SetPhotoURL(*s)
+	}
+	return uc
+}
+
 // SetUID sets the "uid" field.
 func (uc *UserCreate) SetUID(s string) *UserCreate {
 	uc.mutation.SetUID(s)
+	return uc
+}
+
+// SetAddressID sets the "address_id" field.
+func (uc *UserCreate) SetAddressID(s string) *UserCreate {
+	uc.mutation.SetAddressID(s)
 	return uc
 }
 
@@ -105,6 +135,12 @@ func (uc *UserCreate) SetNillableUpdateTime(t *time.Time) *UserCreate {
 // SetGroupID sets the "group_id" field.
 func (uc *UserCreate) SetGroupID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetGroupID(u)
+	return uc
+}
+
+// SetGroupCode sets the "group_code" field.
+func (uc *UserCreate) SetGroupCode(s string) *UserCreate {
+	uc.mutation.SetGroupCode(s)
 	return uc
 }
 
@@ -204,40 +240,25 @@ func (uc *UserCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
-	if _, ok := uc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "User.name"`)}
-	}
 	if v, ok := uc.mutation.Name(); ok {
 		if err := user.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "User.name": %w`, err)}
 		}
-	}
-	if _, ok := uc.mutation.Nickname(); !ok {
-		return &ValidationError{Name: "nickname", err: errors.New(`ent: missing required field "User.nickname"`)}
 	}
 	if v, ok := uc.mutation.Nickname(); ok {
 		if err := user.NicknameValidator(v); err != nil {
 			return &ValidationError{Name: "nickname", err: fmt.Errorf(`ent: validator failed for field "User.nickname": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
-	}
 	if v, ok := uc.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.PhoneNumber(); !ok {
-		return &ValidationError{Name: "phone_number", err: errors.New(`ent: missing required field "User.phone_number"`)}
-	}
 	if v, ok := uc.mutation.PhoneNumber(); ok {
 		if err := user.PhoneNumberValidator(v); err != nil {
 			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "User.phone_number": %w`, err)}
 		}
-	}
-	if _, ok := uc.mutation.PhotoURL(); !ok {
-		return &ValidationError{Name: "photo_url", err: errors.New(`ent: missing required field "User.photo_url"`)}
 	}
 	if v, ok := uc.mutation.PhotoURL(); ok {
 		if err := user.PhotoURLValidator(v); err != nil {
@@ -252,6 +273,14 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "User.uid": %w`, err)}
 		}
 	}
+	if _, ok := uc.mutation.AddressID(); !ok {
+		return &ValidationError{Name: "address_id", err: errors.New(`ent: missing required field "User.address_id"`)}
+	}
+	if v, ok := uc.mutation.AddressID(); ok {
+		if err := user.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "User.address_id": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "User.create_time"`)}
 	}
@@ -260,6 +289,9 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.GroupID(); !ok {
 		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "User.group_id"`)}
+	}
+	if _, ok := uc.mutation.GroupCode(); !ok {
+		return &ValidationError{Name: "group_code", err: errors.New(`ent: missing required field "User.group_code"`)}
 	}
 	if _, ok := uc.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "User.is_active"`)}
@@ -304,27 +336,31 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.Name(); ok {
 		_spec.SetField(user.FieldName, field.TypeString, value)
-		_node.Name = &value
+		_node.Name = value
 	}
 	if value, ok := uc.mutation.Nickname(); ok {
 		_spec.SetField(user.FieldNickname, field.TypeString, value)
-		_node.Nickname = &value
+		_node.Nickname = value
 	}
 	if value, ok := uc.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
-		_node.Email = &value
+		_node.Email = value
 	}
 	if value, ok := uc.mutation.PhoneNumber(); ok {
 		_spec.SetField(user.FieldPhoneNumber, field.TypeString, value)
-		_node.PhoneNumber = &value
+		_node.PhoneNumber = value
 	}
 	if value, ok := uc.mutation.PhotoURL(); ok {
 		_spec.SetField(user.FieldPhotoURL, field.TypeString, value)
-		_node.PhotoURL = &value
+		_node.PhotoURL = value
 	}
 	if value, ok := uc.mutation.UID(); ok {
 		_spec.SetField(user.FieldUID, field.TypeString, value)
 		_node.UID = value
+	}
+	if value, ok := uc.mutation.AddressID(); ok {
+		_spec.SetField(user.FieldAddressID, field.TypeString, value)
+		_node.AddressID = value
 	}
 	if value, ok := uc.mutation.CreateTime(); ok {
 		_spec.SetField(user.FieldCreateTime, field.TypeTime, value)
@@ -333,6 +369,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UpdateTime(); ok {
 		_spec.SetField(user.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := uc.mutation.GroupCode(); ok {
+		_spec.SetField(user.FieldGroupCode, field.TypeString, value)
+		_node.GroupCode = value
 	}
 	if value, ok := uc.mutation.IsActive(); ok {
 		_spec.SetField(user.FieldIsActive, field.TypeBool, value)

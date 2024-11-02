@@ -86,6 +86,11 @@ func UID(v string) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldUID, v))
 }
 
+// AddressID applies equality check predicate on the "address_id" field. It's identical to AddressIDEQ.
+func AddressID(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldAddressID, v))
+}
+
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Account {
 	return predicate.Account(sql.FieldEQ(FieldCreateTime, v))
@@ -161,6 +166,16 @@ func NameHasSuffix(v string) predicate.Account {
 	return predicate.Account(sql.FieldHasSuffix(FieldName, v))
 }
 
+// NameIsNil applies the IsNil predicate on the "name" field.
+func NameIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldName))
+}
+
+// NameNotNil applies the NotNil predicate on the "name" field.
+func NameNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldName))
+}
+
 // NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.Account {
 	return predicate.Account(sql.FieldEqualFold(FieldName, v))
@@ -224,6 +239,16 @@ func NicknameHasPrefix(v string) predicate.Account {
 // NicknameHasSuffix applies the HasSuffix predicate on the "nickname" field.
 func NicknameHasSuffix(v string) predicate.Account {
 	return predicate.Account(sql.FieldHasSuffix(FieldNickname, v))
+}
+
+// NicknameIsNil applies the IsNil predicate on the "nickname" field.
+func NicknameIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldNickname))
+}
+
+// NicknameNotNil applies the NotNil predicate on the "nickname" field.
+func NicknameNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldNickname))
 }
 
 // NicknameEqualFold applies the EqualFold predicate on the "nickname" field.
@@ -291,6 +316,16 @@ func EmailHasSuffix(v string) predicate.Account {
 	return predicate.Account(sql.FieldHasSuffix(FieldEmail, v))
 }
 
+// EmailIsNil applies the IsNil predicate on the "email" field.
+func EmailIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldEmail))
+}
+
+// EmailNotNil applies the NotNil predicate on the "email" field.
+func EmailNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldEmail))
+}
+
 // EmailEqualFold applies the EqualFold predicate on the "email" field.
 func EmailEqualFold(v string) predicate.Account {
 	return predicate.Account(sql.FieldEqualFold(FieldEmail, v))
@@ -356,6 +391,16 @@ func PhoneNumberHasSuffix(v string) predicate.Account {
 	return predicate.Account(sql.FieldHasSuffix(FieldPhoneNumber, v))
 }
 
+// PhoneNumberIsNil applies the IsNil predicate on the "phone_number" field.
+func PhoneNumberIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldPhoneNumber))
+}
+
+// PhoneNumberNotNil applies the NotNil predicate on the "phone_number" field.
+func PhoneNumberNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldPhoneNumber))
+}
+
 // PhoneNumberEqualFold applies the EqualFold predicate on the "phone_number" field.
 func PhoneNumberEqualFold(v string) predicate.Account {
 	return predicate.Account(sql.FieldEqualFold(FieldPhoneNumber, v))
@@ -419,6 +464,16 @@ func PhotoURLHasPrefix(v string) predicate.Account {
 // PhotoURLHasSuffix applies the HasSuffix predicate on the "photo_url" field.
 func PhotoURLHasSuffix(v string) predicate.Account {
 	return predicate.Account(sql.FieldHasSuffix(FieldPhotoURL, v))
+}
+
+// PhotoURLIsNil applies the IsNil predicate on the "photo_url" field.
+func PhotoURLIsNil() predicate.Account {
+	return predicate.Account(sql.FieldIsNull(FieldPhotoURL))
+}
+
+// PhotoURLNotNil applies the NotNil predicate on the "photo_url" field.
+func PhotoURLNotNil() predicate.Account {
+	return predicate.Account(sql.FieldNotNull(FieldPhotoURL))
 }
 
 // PhotoURLEqualFold applies the EqualFold predicate on the "photo_url" field.
@@ -494,6 +549,71 @@ func UIDEqualFold(v string) predicate.Account {
 // UIDContainsFold applies the ContainsFold predicate on the "uid" field.
 func UIDContainsFold(v string) predicate.Account {
 	return predicate.Account(sql.FieldContainsFold(FieldUID, v))
+}
+
+// AddressIDEQ applies the EQ predicate on the "address_id" field.
+func AddressIDEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldEQ(FieldAddressID, v))
+}
+
+// AddressIDNEQ applies the NEQ predicate on the "address_id" field.
+func AddressIDNEQ(v string) predicate.Account {
+	return predicate.Account(sql.FieldNEQ(FieldAddressID, v))
+}
+
+// AddressIDIn applies the In predicate on the "address_id" field.
+func AddressIDIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldIn(FieldAddressID, vs...))
+}
+
+// AddressIDNotIn applies the NotIn predicate on the "address_id" field.
+func AddressIDNotIn(vs ...string) predicate.Account {
+	return predicate.Account(sql.FieldNotIn(FieldAddressID, vs...))
+}
+
+// AddressIDGT applies the GT predicate on the "address_id" field.
+func AddressIDGT(v string) predicate.Account {
+	return predicate.Account(sql.FieldGT(FieldAddressID, v))
+}
+
+// AddressIDGTE applies the GTE predicate on the "address_id" field.
+func AddressIDGTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldGTE(FieldAddressID, v))
+}
+
+// AddressIDLT applies the LT predicate on the "address_id" field.
+func AddressIDLT(v string) predicate.Account {
+	return predicate.Account(sql.FieldLT(FieldAddressID, v))
+}
+
+// AddressIDLTE applies the LTE predicate on the "address_id" field.
+func AddressIDLTE(v string) predicate.Account {
+	return predicate.Account(sql.FieldLTE(FieldAddressID, v))
+}
+
+// AddressIDContains applies the Contains predicate on the "address_id" field.
+func AddressIDContains(v string) predicate.Account {
+	return predicate.Account(sql.FieldContains(FieldAddressID, v))
+}
+
+// AddressIDHasPrefix applies the HasPrefix predicate on the "address_id" field.
+func AddressIDHasPrefix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasPrefix(FieldAddressID, v))
+}
+
+// AddressIDHasSuffix applies the HasSuffix predicate on the "address_id" field.
+func AddressIDHasSuffix(v string) predicate.Account {
+	return predicate.Account(sql.FieldHasSuffix(FieldAddressID, v))
+}
+
+// AddressIDEqualFold applies the EqualFold predicate on the "address_id" field.
+func AddressIDEqualFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldEqualFold(FieldAddressID, v))
+}
+
+// AddressIDContainsFold applies the ContainsFold predicate on the "address_id" field.
+func AddressIDContainsFold(v string) predicate.Account {
+	return predicate.Account(sql.FieldContainsFold(FieldAddressID, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.

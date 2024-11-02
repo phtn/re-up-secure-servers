@@ -43,6 +43,12 @@ func (au *AccountUpdate) SetNillableName(s *string) *AccountUpdate {
 	return au
 }
 
+// ClearName clears the value of the "name" field.
+func (au *AccountUpdate) ClearName() *AccountUpdate {
+	au.mutation.ClearName()
+	return au
+}
+
 // SetNickname sets the "nickname" field.
 func (au *AccountUpdate) SetNickname(s string) *AccountUpdate {
 	au.mutation.SetNickname(s)
@@ -54,6 +60,12 @@ func (au *AccountUpdate) SetNillableNickname(s *string) *AccountUpdate {
 	if s != nil {
 		au.SetNickname(*s)
 	}
+	return au
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (au *AccountUpdate) ClearNickname() *AccountUpdate {
+	au.mutation.ClearNickname()
 	return au
 }
 
@@ -71,6 +83,12 @@ func (au *AccountUpdate) SetNillableEmail(s *string) *AccountUpdate {
 	return au
 }
 
+// ClearEmail clears the value of the "email" field.
+func (au *AccountUpdate) ClearEmail() *AccountUpdate {
+	au.mutation.ClearEmail()
+	return au
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (au *AccountUpdate) SetPhoneNumber(s string) *AccountUpdate {
 	au.mutation.SetPhoneNumber(s)
@@ -82,6 +100,12 @@ func (au *AccountUpdate) SetNillablePhoneNumber(s *string) *AccountUpdate {
 	if s != nil {
 		au.SetPhoneNumber(*s)
 	}
+	return au
+}
+
+// ClearPhoneNumber clears the value of the "phone_number" field.
+func (au *AccountUpdate) ClearPhoneNumber() *AccountUpdate {
+	au.mutation.ClearPhoneNumber()
 	return au
 }
 
@@ -99,6 +123,12 @@ func (au *AccountUpdate) SetNillablePhotoURL(s *string) *AccountUpdate {
 	return au
 }
 
+// ClearPhotoURL clears the value of the "photo_url" field.
+func (au *AccountUpdate) ClearPhotoURL() *AccountUpdate {
+	au.mutation.ClearPhotoURL()
+	return au
+}
+
 // SetUID sets the "uid" field.
 func (au *AccountUpdate) SetUID(s string) *AccountUpdate {
 	au.mutation.SetUID(s)
@@ -109,6 +139,20 @@ func (au *AccountUpdate) SetUID(s string) *AccountUpdate {
 func (au *AccountUpdate) SetNillableUID(s *string) *AccountUpdate {
 	if s != nil {
 		au.SetUID(*s)
+	}
+	return au
+}
+
+// SetAddressID sets the "address_id" field.
+func (au *AccountUpdate) SetAddressID(s string) *AccountUpdate {
+	au.mutation.SetAddressID(s)
+	return au
+}
+
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (au *AccountUpdate) SetNillableAddressID(s *string) *AccountUpdate {
+	if s != nil {
+		au.SetAddressID(*s)
 	}
 	return au
 }
@@ -241,6 +285,11 @@ func (au *AccountUpdate) check() error {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "Account.uid": %w`, err)}
 		}
 	}
+	if v, ok := au.mutation.AddressID(); ok {
+		if err := account.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "Account.address_id": %w`, err)}
+		}
+	}
 	if v, ok := au.mutation.APIKey(); ok {
 		if err := account.APIKeyValidator(v); err != nil {
 			return &ValidationError{Name: "api_key", err: fmt.Errorf(`ent: validator failed for field "Account.api_key": %w`, err)}
@@ -264,20 +313,38 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := au.mutation.Name(); ok {
 		_spec.SetField(account.FieldName, field.TypeString, value)
 	}
+	if au.mutation.NameCleared() {
+		_spec.ClearField(account.FieldName, field.TypeString)
+	}
 	if value, ok := au.mutation.Nickname(); ok {
 		_spec.SetField(account.FieldNickname, field.TypeString, value)
+	}
+	if au.mutation.NicknameCleared() {
+		_spec.ClearField(account.FieldNickname, field.TypeString)
 	}
 	if value, ok := au.mutation.Email(); ok {
 		_spec.SetField(account.FieldEmail, field.TypeString, value)
 	}
+	if au.mutation.EmailCleared() {
+		_spec.ClearField(account.FieldEmail, field.TypeString)
+	}
 	if value, ok := au.mutation.PhoneNumber(); ok {
 		_spec.SetField(account.FieldPhoneNumber, field.TypeString, value)
+	}
+	if au.mutation.PhoneNumberCleared() {
+		_spec.ClearField(account.FieldPhoneNumber, field.TypeString)
 	}
 	if value, ok := au.mutation.PhotoURL(); ok {
 		_spec.SetField(account.FieldPhotoURL, field.TypeString, value)
 	}
+	if au.mutation.PhotoURLCleared() {
+		_spec.ClearField(account.FieldPhotoURL, field.TypeString)
+	}
 	if value, ok := au.mutation.UID(); ok {
 		_spec.SetField(account.FieldUID, field.TypeString, value)
+	}
+	if value, ok := au.mutation.AddressID(); ok {
+		_spec.SetField(account.FieldAddressID, field.TypeString, value)
 	}
 	if value, ok := au.mutation.APIKey(); ok {
 		_spec.SetField(account.FieldAPIKey, field.TypeString, value)
@@ -364,6 +431,12 @@ func (auo *AccountUpdateOne) SetNillableName(s *string) *AccountUpdateOne {
 	return auo
 }
 
+// ClearName clears the value of the "name" field.
+func (auo *AccountUpdateOne) ClearName() *AccountUpdateOne {
+	auo.mutation.ClearName()
+	return auo
+}
+
 // SetNickname sets the "nickname" field.
 func (auo *AccountUpdateOne) SetNickname(s string) *AccountUpdateOne {
 	auo.mutation.SetNickname(s)
@@ -375,6 +448,12 @@ func (auo *AccountUpdateOne) SetNillableNickname(s *string) *AccountUpdateOne {
 	if s != nil {
 		auo.SetNickname(*s)
 	}
+	return auo
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (auo *AccountUpdateOne) ClearNickname() *AccountUpdateOne {
+	auo.mutation.ClearNickname()
 	return auo
 }
 
@@ -392,6 +471,12 @@ func (auo *AccountUpdateOne) SetNillableEmail(s *string) *AccountUpdateOne {
 	return auo
 }
 
+// ClearEmail clears the value of the "email" field.
+func (auo *AccountUpdateOne) ClearEmail() *AccountUpdateOne {
+	auo.mutation.ClearEmail()
+	return auo
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (auo *AccountUpdateOne) SetPhoneNumber(s string) *AccountUpdateOne {
 	auo.mutation.SetPhoneNumber(s)
@@ -403,6 +488,12 @@ func (auo *AccountUpdateOne) SetNillablePhoneNumber(s *string) *AccountUpdateOne
 	if s != nil {
 		auo.SetPhoneNumber(*s)
 	}
+	return auo
+}
+
+// ClearPhoneNumber clears the value of the "phone_number" field.
+func (auo *AccountUpdateOne) ClearPhoneNumber() *AccountUpdateOne {
+	auo.mutation.ClearPhoneNumber()
 	return auo
 }
 
@@ -420,6 +511,12 @@ func (auo *AccountUpdateOne) SetNillablePhotoURL(s *string) *AccountUpdateOne {
 	return auo
 }
 
+// ClearPhotoURL clears the value of the "photo_url" field.
+func (auo *AccountUpdateOne) ClearPhotoURL() *AccountUpdateOne {
+	auo.mutation.ClearPhotoURL()
+	return auo
+}
+
 // SetUID sets the "uid" field.
 func (auo *AccountUpdateOne) SetUID(s string) *AccountUpdateOne {
 	auo.mutation.SetUID(s)
@@ -430,6 +527,20 @@ func (auo *AccountUpdateOne) SetUID(s string) *AccountUpdateOne {
 func (auo *AccountUpdateOne) SetNillableUID(s *string) *AccountUpdateOne {
 	if s != nil {
 		auo.SetUID(*s)
+	}
+	return auo
+}
+
+// SetAddressID sets the "address_id" field.
+func (auo *AccountUpdateOne) SetAddressID(s string) *AccountUpdateOne {
+	auo.mutation.SetAddressID(s)
+	return auo
+}
+
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (auo *AccountUpdateOne) SetNillableAddressID(s *string) *AccountUpdateOne {
+	if s != nil {
+		auo.SetAddressID(*s)
 	}
 	return auo
 }
@@ -575,6 +686,11 @@ func (auo *AccountUpdateOne) check() error {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "Account.uid": %w`, err)}
 		}
 	}
+	if v, ok := auo.mutation.AddressID(); ok {
+		if err := account.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "Account.address_id": %w`, err)}
+		}
+	}
 	if v, ok := auo.mutation.APIKey(); ok {
 		if err := account.APIKeyValidator(v); err != nil {
 			return &ValidationError{Name: "api_key", err: fmt.Errorf(`ent: validator failed for field "Account.api_key": %w`, err)}
@@ -615,20 +731,38 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err e
 	if value, ok := auo.mutation.Name(); ok {
 		_spec.SetField(account.FieldName, field.TypeString, value)
 	}
+	if auo.mutation.NameCleared() {
+		_spec.ClearField(account.FieldName, field.TypeString)
+	}
 	if value, ok := auo.mutation.Nickname(); ok {
 		_spec.SetField(account.FieldNickname, field.TypeString, value)
+	}
+	if auo.mutation.NicknameCleared() {
+		_spec.ClearField(account.FieldNickname, field.TypeString)
 	}
 	if value, ok := auo.mutation.Email(); ok {
 		_spec.SetField(account.FieldEmail, field.TypeString, value)
 	}
+	if auo.mutation.EmailCleared() {
+		_spec.ClearField(account.FieldEmail, field.TypeString)
+	}
 	if value, ok := auo.mutation.PhoneNumber(); ok {
 		_spec.SetField(account.FieldPhoneNumber, field.TypeString, value)
+	}
+	if auo.mutation.PhoneNumberCleared() {
+		_spec.ClearField(account.FieldPhoneNumber, field.TypeString)
 	}
 	if value, ok := auo.mutation.PhotoURL(); ok {
 		_spec.SetField(account.FieldPhotoURL, field.TypeString, value)
 	}
+	if auo.mutation.PhotoURLCleared() {
+		_spec.ClearField(account.FieldPhotoURL, field.TypeString)
+	}
 	if value, ok := auo.mutation.UID(); ok {
 		_spec.SetField(account.FieldUID, field.TypeString, value)
+	}
+	if value, ok := auo.mutation.AddressID(); ok {
+		_spec.SetField(account.FieldAddressID, field.TypeString, value)
 	}
 	if value, ok := auo.mutation.APIKey(); ok {
 		_spec.SetField(account.FieldAPIKey, field.TypeString, value)

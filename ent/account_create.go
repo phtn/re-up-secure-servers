@@ -56,9 +56,25 @@ func (ac *AccountCreate) SetEmail(s string) *AccountCreate {
 	return ac
 }
 
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (ac *AccountCreate) SetNillableEmail(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetEmail(*s)
+	}
+	return ac
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (ac *AccountCreate) SetPhoneNumber(s string) *AccountCreate {
 	ac.mutation.SetPhoneNumber(s)
+	return ac
+}
+
+// SetNillablePhoneNumber sets the "phone_number" field if the given value is not nil.
+func (ac *AccountCreate) SetNillablePhoneNumber(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetPhoneNumber(*s)
+	}
 	return ac
 }
 
@@ -68,9 +84,23 @@ func (ac *AccountCreate) SetPhotoURL(s string) *AccountCreate {
 	return ac
 }
 
+// SetNillablePhotoURL sets the "photo_url" field if the given value is not nil.
+func (ac *AccountCreate) SetNillablePhotoURL(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetPhotoURL(*s)
+	}
+	return ac
+}
+
 // SetUID sets the "uid" field.
 func (ac *AccountCreate) SetUID(s string) *AccountCreate {
 	ac.mutation.SetUID(s)
+	return ac
+}
+
+// SetAddressID sets the "address_id" field.
+func (ac *AccountCreate) SetAddressID(s string) *AccountCreate {
+	ac.mutation.SetAddressID(s)
 	return ac
 }
 
@@ -214,40 +244,25 @@ func (ac *AccountCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ac *AccountCreate) check() error {
-	if _, ok := ac.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Account.name"`)}
-	}
 	if v, ok := ac.mutation.Name(); ok {
 		if err := account.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Account.name": %w`, err)}
 		}
-	}
-	if _, ok := ac.mutation.Nickname(); !ok {
-		return &ValidationError{Name: "nickname", err: errors.New(`ent: missing required field "Account.nickname"`)}
 	}
 	if v, ok := ac.mutation.Nickname(); ok {
 		if err := account.NicknameValidator(v); err != nil {
 			return &ValidationError{Name: "nickname", err: fmt.Errorf(`ent: validator failed for field "Account.nickname": %w`, err)}
 		}
 	}
-	if _, ok := ac.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Account.email"`)}
-	}
 	if v, ok := ac.mutation.Email(); ok {
 		if err := account.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Account.email": %w`, err)}
 		}
 	}
-	if _, ok := ac.mutation.PhoneNumber(); !ok {
-		return &ValidationError{Name: "phone_number", err: errors.New(`ent: missing required field "Account.phone_number"`)}
-	}
 	if v, ok := ac.mutation.PhoneNumber(); ok {
 		if err := account.PhoneNumberValidator(v); err != nil {
 			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "Account.phone_number": %w`, err)}
 		}
-	}
-	if _, ok := ac.mutation.PhotoURL(); !ok {
-		return &ValidationError{Name: "photo_url", err: errors.New(`ent: missing required field "Account.photo_url"`)}
 	}
 	if v, ok := ac.mutation.PhotoURL(); ok {
 		if err := account.PhotoURLValidator(v); err != nil {
@@ -260,6 +275,14 @@ func (ac *AccountCreate) check() error {
 	if v, ok := ac.mutation.UID(); ok {
 		if err := account.UIDValidator(v); err != nil {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "Account.uid": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.AddressID(); !ok {
+		return &ValidationError{Name: "address_id", err: errors.New(`ent: missing required field "Account.address_id"`)}
+	}
+	if v, ok := ac.mutation.AddressID(); ok {
+		if err := account.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "Account.address_id": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.CreateTime(); !ok {
@@ -316,27 +339,31 @@ func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := ac.mutation.Name(); ok {
 		_spec.SetField(account.FieldName, field.TypeString, value)
-		_node.Name = &value
+		_node.Name = value
 	}
 	if value, ok := ac.mutation.Nickname(); ok {
 		_spec.SetField(account.FieldNickname, field.TypeString, value)
-		_node.Nickname = &value
+		_node.Nickname = value
 	}
 	if value, ok := ac.mutation.Email(); ok {
 		_spec.SetField(account.FieldEmail, field.TypeString, value)
-		_node.Email = &value
+		_node.Email = value
 	}
 	if value, ok := ac.mutation.PhoneNumber(); ok {
 		_spec.SetField(account.FieldPhoneNumber, field.TypeString, value)
-		_node.PhoneNumber = &value
+		_node.PhoneNumber = value
 	}
 	if value, ok := ac.mutation.PhotoURL(); ok {
 		_spec.SetField(account.FieldPhotoURL, field.TypeString, value)
-		_node.PhotoURL = &value
+		_node.PhotoURL = value
 	}
 	if value, ok := ac.mutation.UID(); ok {
 		_spec.SetField(account.FieldUID, field.TypeString, value)
 		_node.UID = value
+	}
+	if value, ok := ac.mutation.AddressID(); ok {
+		_spec.SetField(account.FieldAddressID, field.TypeString, value)
+		_node.AddressID = value
 	}
 	if value, ok := ac.mutation.CreateTime(); ok {
 		_spec.SetField(account.FieldCreateTime, field.TypeTime, value)

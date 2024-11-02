@@ -20,17 +20,19 @@ type Group struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
-	Name *string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
 	// Nickname holds the value of the "nickname" field.
-	Nickname *string `json:"nickname,omitempty"`
+	Nickname string `json:"nickname,omitempty"`
 	// Email holds the value of the "email" field.
-	Email *string `json:"email,omitempty"`
+	Email string `json:"email,omitempty"`
 	// PhoneNumber holds the value of the "phone_number" field.
-	PhoneNumber *string `json:"phone_number,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty"`
 	// PhotoURL holds the value of the "photo_url" field.
-	PhotoURL *string `json:"photo_url,omitempty"`
+	PhotoURL string `json:"photo_url,omitempty"`
 	// UID holds the value of the "uid" field.
 	UID string `json:"uid,omitempty"`
+	// AddressID holds the value of the "address_id" field.
+	AddressID string `json:"address_id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
@@ -87,7 +89,7 @@ func (*Group) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case group.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case group.FieldName, group.FieldNickname, group.FieldEmail, group.FieldPhoneNumber, group.FieldPhotoURL, group.FieldUID, group.FieldGroupCode, group.FieldAddress:
+		case group.FieldName, group.FieldNickname, group.FieldEmail, group.FieldPhoneNumber, group.FieldPhotoURL, group.FieldUID, group.FieldAddressID, group.FieldGroupCode, group.FieldAddress:
 			values[i] = new(sql.NullString)
 		case group.FieldCreateTime, group.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -118,42 +120,43 @@ func (gr *Group) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				gr.Name = new(string)
-				*gr.Name = value.String
+				gr.Name = value.String
 			}
 		case group.FieldNickname:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field nickname", values[i])
 			} else if value.Valid {
-				gr.Nickname = new(string)
-				*gr.Nickname = value.String
+				gr.Nickname = value.String
 			}
 		case group.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field email", values[i])
 			} else if value.Valid {
-				gr.Email = new(string)
-				*gr.Email = value.String
+				gr.Email = value.String
 			}
 		case group.FieldPhoneNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field phone_number", values[i])
 			} else if value.Valid {
-				gr.PhoneNumber = new(string)
-				*gr.PhoneNumber = value.String
+				gr.PhoneNumber = value.String
 			}
 		case group.FieldPhotoURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field photo_url", values[i])
 			} else if value.Valid {
-				gr.PhotoURL = new(string)
-				*gr.PhotoURL = value.String
+				gr.PhotoURL = value.String
 			}
 		case group.FieldUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field uid", values[i])
 			} else if value.Valid {
 				gr.UID = value.String
+			}
+		case group.FieldAddressID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field address_id", values[i])
+			} else if value.Valid {
+				gr.AddressID = value.String
 			}
 		case group.FieldCreateTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -237,33 +240,26 @@ func (gr *Group) String() string {
 	var builder strings.Builder
 	builder.WriteString("Group(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", gr.ID))
-	if v := gr.Name; v != nil {
-		builder.WriteString("name=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("name=")
+	builder.WriteString(gr.Name)
 	builder.WriteString(", ")
-	if v := gr.Nickname; v != nil {
-		builder.WriteString("nickname=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("nickname=")
+	builder.WriteString(gr.Nickname)
 	builder.WriteString(", ")
-	if v := gr.Email; v != nil {
-		builder.WriteString("email=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("email=")
+	builder.WriteString(gr.Email)
 	builder.WriteString(", ")
-	if v := gr.PhoneNumber; v != nil {
-		builder.WriteString("phone_number=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("phone_number=")
+	builder.WriteString(gr.PhoneNumber)
 	builder.WriteString(", ")
-	if v := gr.PhotoURL; v != nil {
-		builder.WriteString("photo_url=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("photo_url=")
+	builder.WriteString(gr.PhotoURL)
 	builder.WriteString(", ")
 	builder.WriteString("uid=")
 	builder.WriteString(gr.UID)
+	builder.WriteString(", ")
+	builder.WriteString("address_id=")
+	builder.WriteString(gr.AddressID)
 	builder.WriteString(", ")
 	builder.WriteString("create_time=")
 	builder.WriteString(gr.CreateTime.Format(time.ANSIC))

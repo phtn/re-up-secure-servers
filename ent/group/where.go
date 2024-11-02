@@ -86,6 +86,11 @@ func UID(v string) predicate.Group {
 	return predicate.Group(sql.FieldEQ(FieldUID, v))
 }
 
+// AddressID applies equality check predicate on the "address_id" field. It's identical to AddressIDEQ.
+func AddressID(v string) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldAddressID, v))
+}
+
 // CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
 func CreateTime(v time.Time) predicate.Group {
 	return predicate.Group(sql.FieldEQ(FieldCreateTime, v))
@@ -171,6 +176,16 @@ func NameHasSuffix(v string) predicate.Group {
 	return predicate.Group(sql.FieldHasSuffix(FieldName, v))
 }
 
+// NameIsNil applies the IsNil predicate on the "name" field.
+func NameIsNil() predicate.Group {
+	return predicate.Group(sql.FieldIsNull(FieldName))
+}
+
+// NameNotNil applies the NotNil predicate on the "name" field.
+func NameNotNil() predicate.Group {
+	return predicate.Group(sql.FieldNotNull(FieldName))
+}
+
 // NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldEqualFold(FieldName, v))
@@ -234,6 +249,16 @@ func NicknameHasPrefix(v string) predicate.Group {
 // NicknameHasSuffix applies the HasSuffix predicate on the "nickname" field.
 func NicknameHasSuffix(v string) predicate.Group {
 	return predicate.Group(sql.FieldHasSuffix(FieldNickname, v))
+}
+
+// NicknameIsNil applies the IsNil predicate on the "nickname" field.
+func NicknameIsNil() predicate.Group {
+	return predicate.Group(sql.FieldIsNull(FieldNickname))
+}
+
+// NicknameNotNil applies the NotNil predicate on the "nickname" field.
+func NicknameNotNil() predicate.Group {
+	return predicate.Group(sql.FieldNotNull(FieldNickname))
 }
 
 // NicknameEqualFold applies the EqualFold predicate on the "nickname" field.
@@ -301,6 +326,16 @@ func EmailHasSuffix(v string) predicate.Group {
 	return predicate.Group(sql.FieldHasSuffix(FieldEmail, v))
 }
 
+// EmailIsNil applies the IsNil predicate on the "email" field.
+func EmailIsNil() predicate.Group {
+	return predicate.Group(sql.FieldIsNull(FieldEmail))
+}
+
+// EmailNotNil applies the NotNil predicate on the "email" field.
+func EmailNotNil() predicate.Group {
+	return predicate.Group(sql.FieldNotNull(FieldEmail))
+}
+
 // EmailEqualFold applies the EqualFold predicate on the "email" field.
 func EmailEqualFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldEqualFold(FieldEmail, v))
@@ -366,6 +401,16 @@ func PhoneNumberHasSuffix(v string) predicate.Group {
 	return predicate.Group(sql.FieldHasSuffix(FieldPhoneNumber, v))
 }
 
+// PhoneNumberIsNil applies the IsNil predicate on the "phone_number" field.
+func PhoneNumberIsNil() predicate.Group {
+	return predicate.Group(sql.FieldIsNull(FieldPhoneNumber))
+}
+
+// PhoneNumberNotNil applies the NotNil predicate on the "phone_number" field.
+func PhoneNumberNotNil() predicate.Group {
+	return predicate.Group(sql.FieldNotNull(FieldPhoneNumber))
+}
+
 // PhoneNumberEqualFold applies the EqualFold predicate on the "phone_number" field.
 func PhoneNumberEqualFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldEqualFold(FieldPhoneNumber, v))
@@ -429,6 +474,16 @@ func PhotoURLHasPrefix(v string) predicate.Group {
 // PhotoURLHasSuffix applies the HasSuffix predicate on the "photo_url" field.
 func PhotoURLHasSuffix(v string) predicate.Group {
 	return predicate.Group(sql.FieldHasSuffix(FieldPhotoURL, v))
+}
+
+// PhotoURLIsNil applies the IsNil predicate on the "photo_url" field.
+func PhotoURLIsNil() predicate.Group {
+	return predicate.Group(sql.FieldIsNull(FieldPhotoURL))
+}
+
+// PhotoURLNotNil applies the NotNil predicate on the "photo_url" field.
+func PhotoURLNotNil() predicate.Group {
+	return predicate.Group(sql.FieldNotNull(FieldPhotoURL))
 }
 
 // PhotoURLEqualFold applies the EqualFold predicate on the "photo_url" field.
@@ -504,6 +559,71 @@ func UIDEqualFold(v string) predicate.Group {
 // UIDContainsFold applies the ContainsFold predicate on the "uid" field.
 func UIDContainsFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldContainsFold(FieldUID, v))
+}
+
+// AddressIDEQ applies the EQ predicate on the "address_id" field.
+func AddressIDEQ(v string) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldAddressID, v))
+}
+
+// AddressIDNEQ applies the NEQ predicate on the "address_id" field.
+func AddressIDNEQ(v string) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldAddressID, v))
+}
+
+// AddressIDIn applies the In predicate on the "address_id" field.
+func AddressIDIn(vs ...string) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldAddressID, vs...))
+}
+
+// AddressIDNotIn applies the NotIn predicate on the "address_id" field.
+func AddressIDNotIn(vs ...string) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldAddressID, vs...))
+}
+
+// AddressIDGT applies the GT predicate on the "address_id" field.
+func AddressIDGT(v string) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldAddressID, v))
+}
+
+// AddressIDGTE applies the GTE predicate on the "address_id" field.
+func AddressIDGTE(v string) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldAddressID, v))
+}
+
+// AddressIDLT applies the LT predicate on the "address_id" field.
+func AddressIDLT(v string) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldAddressID, v))
+}
+
+// AddressIDLTE applies the LTE predicate on the "address_id" field.
+func AddressIDLTE(v string) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldAddressID, v))
+}
+
+// AddressIDContains applies the Contains predicate on the "address_id" field.
+func AddressIDContains(v string) predicate.Group {
+	return predicate.Group(sql.FieldContains(FieldAddressID, v))
+}
+
+// AddressIDHasPrefix applies the HasPrefix predicate on the "address_id" field.
+func AddressIDHasPrefix(v string) predicate.Group {
+	return predicate.Group(sql.FieldHasPrefix(FieldAddressID, v))
+}
+
+// AddressIDHasSuffix applies the HasSuffix predicate on the "address_id" field.
+func AddressIDHasSuffix(v string) predicate.Group {
+	return predicate.Group(sql.FieldHasSuffix(FieldAddressID, v))
+}
+
+// AddressIDEqualFold applies the EqualFold predicate on the "address_id" field.
+func AddressIDEqualFold(v string) predicate.Group {
+	return predicate.Group(sql.FieldEqualFold(FieldAddressID, v))
+}
+
+// AddressIDContainsFold applies the ContainsFold predicate on the "address_id" field.
+func AddressIDContainsFold(v string) predicate.Group {
+	return predicate.Group(sql.FieldContainsFold(FieldAddressID, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.

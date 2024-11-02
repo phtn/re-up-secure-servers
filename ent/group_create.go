@@ -57,9 +57,25 @@ func (gc *GroupCreate) SetEmail(s string) *GroupCreate {
 	return gc
 }
 
+// SetNillableEmail sets the "email" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableEmail(s *string) *GroupCreate {
+	if s != nil {
+		gc.SetEmail(*s)
+	}
+	return gc
+}
+
 // SetPhoneNumber sets the "phone_number" field.
 func (gc *GroupCreate) SetPhoneNumber(s string) *GroupCreate {
 	gc.mutation.SetPhoneNumber(s)
+	return gc
+}
+
+// SetNillablePhoneNumber sets the "phone_number" field if the given value is not nil.
+func (gc *GroupCreate) SetNillablePhoneNumber(s *string) *GroupCreate {
+	if s != nil {
+		gc.SetPhoneNumber(*s)
+	}
 	return gc
 }
 
@@ -69,9 +85,23 @@ func (gc *GroupCreate) SetPhotoURL(s string) *GroupCreate {
 	return gc
 }
 
+// SetNillablePhotoURL sets the "photo_url" field if the given value is not nil.
+func (gc *GroupCreate) SetNillablePhotoURL(s *string) *GroupCreate {
+	if s != nil {
+		gc.SetPhotoURL(*s)
+	}
+	return gc
+}
+
 // SetUID sets the "uid" field.
 func (gc *GroupCreate) SetUID(s string) *GroupCreate {
 	gc.mutation.SetUID(s)
+	return gc
+}
+
+// SetAddressID sets the "address_id" field.
+func (gc *GroupCreate) SetAddressID(s string) *GroupCreate {
+	gc.mutation.SetAddressID(s)
 	return gc
 }
 
@@ -240,40 +270,25 @@ func (gc *GroupCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (gc *GroupCreate) check() error {
-	if _, ok := gc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Group.name"`)}
-	}
 	if v, ok := gc.mutation.Name(); ok {
 		if err := group.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Group.name": %w`, err)}
 		}
-	}
-	if _, ok := gc.mutation.Nickname(); !ok {
-		return &ValidationError{Name: "nickname", err: errors.New(`ent: missing required field "Group.nickname"`)}
 	}
 	if v, ok := gc.mutation.Nickname(); ok {
 		if err := group.NicknameValidator(v); err != nil {
 			return &ValidationError{Name: "nickname", err: fmt.Errorf(`ent: validator failed for field "Group.nickname": %w`, err)}
 		}
 	}
-	if _, ok := gc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Group.email"`)}
-	}
 	if v, ok := gc.mutation.Email(); ok {
 		if err := group.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "Group.email": %w`, err)}
 		}
 	}
-	if _, ok := gc.mutation.PhoneNumber(); !ok {
-		return &ValidationError{Name: "phone_number", err: errors.New(`ent: missing required field "Group.phone_number"`)}
-	}
 	if v, ok := gc.mutation.PhoneNumber(); ok {
 		if err := group.PhoneNumberValidator(v); err != nil {
 			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "Group.phone_number": %w`, err)}
 		}
-	}
-	if _, ok := gc.mutation.PhotoURL(); !ok {
-		return &ValidationError{Name: "photo_url", err: errors.New(`ent: missing required field "Group.photo_url"`)}
 	}
 	if v, ok := gc.mutation.PhotoURL(); ok {
 		if err := group.PhotoURLValidator(v); err != nil {
@@ -286,6 +301,14 @@ func (gc *GroupCreate) check() error {
 	if v, ok := gc.mutation.UID(); ok {
 		if err := group.UIDValidator(v); err != nil {
 			return &ValidationError{Name: "uid", err: fmt.Errorf(`ent: validator failed for field "Group.uid": %w`, err)}
+		}
+	}
+	if _, ok := gc.mutation.AddressID(); !ok {
+		return &ValidationError{Name: "address_id", err: errors.New(`ent: missing required field "Group.address_id"`)}
+	}
+	if v, ok := gc.mutation.AddressID(); ok {
+		if err := group.AddressIDValidator(v); err != nil {
+			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "Group.address_id": %w`, err)}
 		}
 	}
 	if _, ok := gc.mutation.CreateTime(); !ok {
@@ -353,27 +376,31 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := gc.mutation.Name(); ok {
 		_spec.SetField(group.FieldName, field.TypeString, value)
-		_node.Name = &value
+		_node.Name = value
 	}
 	if value, ok := gc.mutation.Nickname(); ok {
 		_spec.SetField(group.FieldNickname, field.TypeString, value)
-		_node.Nickname = &value
+		_node.Nickname = value
 	}
 	if value, ok := gc.mutation.Email(); ok {
 		_spec.SetField(group.FieldEmail, field.TypeString, value)
-		_node.Email = &value
+		_node.Email = value
 	}
 	if value, ok := gc.mutation.PhoneNumber(); ok {
 		_spec.SetField(group.FieldPhoneNumber, field.TypeString, value)
-		_node.PhoneNumber = &value
+		_node.PhoneNumber = value
 	}
 	if value, ok := gc.mutation.PhotoURL(); ok {
 		_spec.SetField(group.FieldPhotoURL, field.TypeString, value)
-		_node.PhotoURL = &value
+		_node.PhotoURL = value
 	}
 	if value, ok := gc.mutation.UID(); ok {
 		_spec.SetField(group.FieldUID, field.TypeString, value)
 		_node.UID = value
+	}
+	if value, ok := gc.mutation.AddressID(); ok {
+		_spec.SetField(group.FieldAddressID, field.TypeString, value)
+		_node.AddressID = value
 	}
 	if value, ok := gc.mutation.CreateTime(); ok {
 		_spec.SetField(group.FieldCreateTime, field.TypeTime, value)

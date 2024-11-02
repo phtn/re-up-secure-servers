@@ -11,12 +11,13 @@ var (
 	// AccountsColumns holds the columns for the "accounts" table.
 	AccountsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 100, Default: ""},
-		{Name: "nickname", Type: field.TypeString, Size: 100, Default: ""},
-		{Name: "email", Type: field.TypeString, Unique: true, Size: 100},
-		{Name: "phone_number", Type: field.TypeString, Unique: true, Size: 100},
-		{Name: "photo_url", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "name", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
+		{Name: "nickname", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
+		{Name: "email", Type: field.TypeString, Unique: true, Nullable: true, Size: 100},
+		{Name: "phone_number", Type: field.TypeString, Unique: true, Nullable: true, Size: 100},
+		{Name: "photo_url", Type: field.TypeString, Unique: true, Nullable: true, Size: 255},
 		{Name: "uid", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "address_id", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "api_key", Type: field.TypeString, Size: 255},
@@ -31,12 +32,13 @@ var (
 	// GroupsColumns holds the columns for the "groups" table.
 	GroupsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 100, Default: ""},
-		{Name: "nickname", Type: field.TypeString, Size: 100, Default: ""},
-		{Name: "email", Type: field.TypeString, Unique: true, Size: 100},
-		{Name: "phone_number", Type: field.TypeString, Unique: true, Size: 100},
-		{Name: "photo_url", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "name", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
+		{Name: "nickname", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
+		{Name: "email", Type: field.TypeString, Unique: true, Nullable: true, Size: 100},
+		{Name: "phone_number", Type: field.TypeString, Unique: true, Nullable: true, Size: 100},
+		{Name: "photo_url", Type: field.TypeString, Unique: true, Nullable: true, Size: 255},
 		{Name: "uid", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "address_id", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "group_code", Type: field.TypeString, Size: 24},
@@ -52,7 +54,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "groups_accounts_groups",
-				Columns:    []*schema.Column{GroupsColumns[12]},
+				Columns:    []*schema.Column{GroupsColumns[13]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -61,14 +63,16 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "name", Type: field.TypeString, Size: 100, Default: ""},
-		{Name: "nickname", Type: field.TypeString, Size: 100, Default: ""},
-		{Name: "email", Type: field.TypeString, Unique: true, Size: 100},
-		{Name: "phone_number", Type: field.TypeString, Unique: true, Size: 100},
-		{Name: "photo_url", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "name", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
+		{Name: "nickname", Type: field.TypeString, Nullable: true, Size: 100, Default: ""},
+		{Name: "email", Type: field.TypeString, Unique: true, Nullable: true, Size: 100},
+		{Name: "phone_number", Type: field.TypeString, Unique: true, Nullable: true, Size: 100},
+		{Name: "photo_url", Type: field.TypeString, Unique: true, Nullable: true, Size: 255},
 		{Name: "uid", Type: field.TypeString, Unique: true, Size: 255},
+		{Name: "address_id", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "group_code", Type: field.TypeString, Unique: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "group_id", Type: field.TypeUUID},
 	}
@@ -80,7 +84,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_users",
-				Columns:    []*schema.Column{UsersColumns[10]},
+				Columns:    []*schema.Column{UsersColumns[12]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -98,7 +102,12 @@ var (
 			},
 			{
 				Name:    "user_group_id",
-				Unique:  true,
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[12]},
+			},
+			{
+				Name:    "user_group_code",
+				Unique:  false,
 				Columns: []*schema.Column{UsersColumns[10]},
 			},
 		},

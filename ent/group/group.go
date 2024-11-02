@@ -27,6 +27,8 @@ const (
 	FieldPhotoURL = "photo_url"
 	// FieldUID holds the string denoting the uid field in the database.
 	FieldUID = "uid"
+	// FieldAddressID holds the string denoting the address_id field in the database.
+	FieldAddressID = "address_id"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
@@ -70,6 +72,7 @@ var Columns = []string{
 	FieldPhoneNumber,
 	FieldPhotoURL,
 	FieldUID,
+	FieldAddressID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldGroupCode,
@@ -105,6 +108,8 @@ var (
 	PhotoURLValidator func(string) error
 	// UIDValidator is a validator for the "uid" field. It is called by the builders before save.
 	UIDValidator func(string) error
+	// AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
+	AddressIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
@@ -155,6 +160,11 @@ func ByPhotoURL(opts ...sql.OrderTermOption) OrderOption {
 // ByUID orders the results by the uid field.
 func ByUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUID, opts...).ToFunc()
+}
+
+// ByAddressID orders the results by the address_id field.
+func ByAddressID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAddressID, opts...).ToFunc()
 }
 
 // ByCreateTime orders the results by the create_time field.

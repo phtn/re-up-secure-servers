@@ -1,12 +1,19 @@
 package psql
 
-func NewUser(name string, email string, phone_number string, uid string) string {
+import (
+	"fast/ent"
+	"fast/ent/user"
+)
+
+func NewUser(name string, email string, phone_number string, uid string, group_code string) string {
 
 	user, err := pq.User.
 		Create().
 		SetName(name).
 		SetEmail(email).
 		SetPhoneNumber(phone_number).
+		SetGroupCode(group_code).
+		SetIsActive(group_code != "").
 		SetUID(uid).
 		Save(ctx)
 
@@ -31,6 +38,23 @@ func NewAccount(name string, email string, api_key string, uid string) string {
 	L.Fail("accounts", "create", err)
 	L.Good("accounts", "create", account.UID, err)
 	return account.UID
+}
+
+func CheckIfUserExists(uid string) bool {
+	user, err := pq.User.Query().Where(user.UID(uid)).First(ctx)
+	L.Fail("get-user", "by-uid", err)
+
+	exists := false
+	if user != nil {
+		exists = true
+	}
+	return exists
+}
+
+func GetUserByUid(uid string) *ent.User {
+	user, err := pq.User.Query().Where(user.UID(uid)).First(ctx)
+	L.Fail("get-user", "by-uid", err)
+	return user
 }
 
 func GetAllAccounts() {

@@ -40,29 +40,32 @@ func (ContactMixin) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			MaxLen(100).
-			Nillable().
+			Optional().
 			Default(""),
 		field.String("nickname").
 			MaxLen(100).
-			Nillable().
+			Optional().
 			Default(""),
 		field.String("email").
 			MaxLen(100).
-			Nillable().
+			Optional().
 			Unique().
 			Validate(email),
 		field.String("phone_number").
 			MaxLen(100).
-			Nillable().
+			Optional().
 			Unique().
 			Validate(phone),
 		field.String("photo_url").
 			MaxLen(255).
-			Nillable().
+			Optional().
 			Unique(),
 		field.String("uid").
 			MaxLen(255).
 			NotEmpty().
+			Unique(),
+		field.String("address_id").
+			MaxLen(255).
 			Unique(),
 	}
 }

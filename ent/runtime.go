@@ -93,6 +93,10 @@ func init() {
 			return nil
 		}
 	}()
+	// accountDescAddressID is the schema descriptor for address_id field.
+	accountDescAddressID := accountMixinFields0[6].Descriptor()
+	// account.AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
+	account.AddressIDValidator = accountDescAddressID.Validators[0].(func(string) error)
 	// accountDescCreateTime is the schema descriptor for create_time field.
 	accountDescCreateTime := accountMixinFields1[0].Descriptor()
 	// account.DefaultCreateTime holds the default value on creation for the create_time field.
@@ -204,6 +208,10 @@ func init() {
 			return nil
 		}
 	}()
+	// groupDescAddressID is the schema descriptor for address_id field.
+	groupDescAddressID := groupMixinFields0[6].Descriptor()
+	// group.AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
+	group.AddressIDValidator = groupDescAddressID.Validators[0].(func(string) error)
 	// groupDescCreateTime is the schema descriptor for create_time field.
 	groupDescCreateTime := groupMixinFields1[0].Descriptor()
 	// group.DefaultCreateTime holds the default value on creation for the create_time field.
@@ -319,6 +327,10 @@ func init() {
 			return nil
 		}
 	}()
+	// userDescAddressID is the schema descriptor for address_id field.
+	userDescAddressID := userMixinFields0[6].Descriptor()
+	// user.AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
+	user.AddressIDValidator = userDescAddressID.Validators[0].(func(string) error)
 	// userDescCreateTime is the schema descriptor for create_time field.
 	userDescCreateTime := userMixinFields1[0].Descriptor()
 	// user.DefaultCreateTime holds the default value on creation for the create_time field.
@@ -328,7 +340,7 @@ func init() {
 	// user.DefaultUpdateTime holds the default value on creation for the update_time field.
 	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
 	// userDescIsActive is the schema descriptor for is_active field.
-	userDescIsActive := userFields[2].Descriptor()
+	userDescIsActive := userFields[3].Descriptor()
 	// user.DefaultIsActive holds the default value on creation for the is_active field.
 	user.DefaultIsActive = userDescIsActive.Default.(bool)
 	// userDescID is the schema descriptor for id field.

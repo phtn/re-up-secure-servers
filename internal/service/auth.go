@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fast/internal/models"
+	"fast/internal/psql"
 	"fast/internal/rdb"
 	"fast/internal/shield"
 	"fast/pkg/utils"
@@ -21,7 +22,7 @@ var (
 	L = utils.NewConsole()
 )
 
-func eqc(k string, verified bool, t *auth.Token) models.VResult {
+func eqc(k string, verified bool, t *auth.Token, is_active bool) models.VResult {
 	if !verified {
 		return models.VResult{
 			Verified: verified,
@@ -31,6 +32,7 @@ func eqc(k string, verified bool, t *auth.Token) models.VResult {
 		Key:      k,
 		Verified: verified,
 		Exp:      int16(t.Expires),
+		IsActive: is_active,
 	}
 }
 
@@ -48,8 +50,14 @@ func VerifyIdToken(ctx context.Context, fire *firebase.App, out *models.VerifyTo
 	verified := t.UID == out.UID
 	L.Info("verify", "id_token", verified)
 
-	// rdb.StoreToken(k, f, t)
-	return eqc(k, verified, t)
+	exists := psql.CheckIfUserExists(t.UID)
+	is_active := out.GroupCode != ""
+
+	if verified && !exists {
+		new_user := psql.NewUser("BrightOne", out.Email, "+639100000000", out.UID, out.GroupCode)
+		L.Info("new-user", "sign-up", new_user)
+	}
+	return eqc(k, verified, t, is_active)
 }
 
 func GetUserRecord(ctx context.Context, fire *firebase.App, v *models.VerifyToken) *models.Verified {
@@ -89,13 +97,13 @@ func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithA
 		L.Good(r, f, "verified", err)
 
 		verified = t.UID == v.UID
-		return eqc(k, verified, t)
+		return eqc(k, verified, t, false)
 	}
 
 	verified = token.UID == v.UID
 	L.Good("verify", "id_token", verified)
 
-	return eqc(k, verified, token)
+	return eqc(k, verified, token, false)
 }
 
 func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bool {

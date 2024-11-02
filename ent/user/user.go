@@ -27,12 +27,16 @@ const (
 	FieldPhotoURL = "photo_url"
 	// FieldUID holds the string denoting the uid field in the database.
 	FieldUID = "uid"
+	// FieldAddressID holds the string denoting the address_id field in the database.
+	FieldAddressID = "address_id"
 	// FieldCreateTime holds the string denoting the create_time field in the database.
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
 	// FieldGroupID holds the string denoting the group_id field in the database.
 	FieldGroupID = "group_id"
+	// FieldGroupCode holds the string denoting the group_code field in the database.
+	FieldGroupCode = "group_code"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
@@ -57,9 +61,11 @@ var Columns = []string{
 	FieldPhoneNumber,
 	FieldPhotoURL,
 	FieldUID,
+	FieldAddressID,
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldGroupID,
+	FieldGroupCode,
 	FieldIsActive,
 }
 
@@ -90,6 +96,8 @@ var (
 	PhotoURLValidator func(string) error
 	// UIDValidator is a validator for the "uid" field. It is called by the builders before save.
 	UIDValidator func(string) error
+	// AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
+	AddressIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
@@ -138,6 +146,11 @@ func ByUID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUID, opts...).ToFunc()
 }
 
+// ByAddressID orders the results by the address_id field.
+func ByAddressID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAddressID, opts...).ToFunc()
+}
+
 // ByCreateTime orders the results by the create_time field.
 func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
@@ -151,6 +164,11 @@ func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByGroupID orders the results by the group_id field.
 func ByGroupID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGroupID, opts...).ToFunc()
+}
+
+// ByGroupCode orders the results by the group_code field.
+func ByGroupCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGroupCode, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.
