@@ -37,3 +37,13 @@ func GetGroupCode(uid string) string {
 	}
 	return group.GroupCode
 }
+
+func GetGroupId(group_code string) (uuid.UUID, error) {
+	group, err := pq.Group.
+		Query().Where(group.GroupCode(group_code)).First(ctx)
+	if err != nil {
+		L.Fail("groups", "get-group-id", group_code, err)
+		return group.ID, err
+	}
+	return group.ID, nil
+}

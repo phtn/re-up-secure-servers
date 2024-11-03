@@ -58,6 +58,7 @@ func (ContactMixin) Fields() []ent.Field {
 			Validate(phone),
 		field.String("photo_url").
 			MaxLen(255).
+			Nillable().
 			Optional().
 			Unique(),
 		field.String("uid").
@@ -66,7 +67,7 @@ func (ContactMixin) Fields() []ent.Field {
 			Unique(),
 		field.String("address_id").
 			MaxLen(255).
-			Unique(),
+			Default("none"),
 	}
 }
 

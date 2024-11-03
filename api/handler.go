@@ -83,7 +83,7 @@ func VerifyIdToken(c *fiber.Ctx) error {
 	d := service.VerifyIdToken(c.Context(), fire, out)
 
 	data := utils.JsonData{Data: d}
-	return utils.FiberResponse(c, utils.OK, nil, data)
+	return utils.FiberCookie(c, d.Cookie, utils.OK, nil, data)
 }
 
 func CreateAgentCode(c *fiber.Ctx) error {

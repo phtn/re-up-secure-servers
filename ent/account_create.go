@@ -104,6 +104,14 @@ func (ac *AccountCreate) SetAddressID(s string) *AccountCreate {
 	return ac
 }
 
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (ac *AccountCreate) SetNillableAddressID(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetAddressID(*s)
+	}
+	return ac
+}
+
 // SetCreateTime sets the "create_time" field.
 func (ac *AccountCreate) SetCreateTime(t time.Time) *AccountCreate {
 	ac.mutation.SetCreateTime(t)
@@ -223,6 +231,10 @@ func (ac *AccountCreate) defaults() {
 	if _, ok := ac.mutation.Nickname(); !ok {
 		v := account.DefaultNickname
 		ac.mutation.SetNickname(v)
+	}
+	if _, ok := ac.mutation.AddressID(); !ok {
+		v := account.DefaultAddressID
+		ac.mutation.SetAddressID(v)
 	}
 	if _, ok := ac.mutation.CreateTime(); !ok {
 		v := account.DefaultCreateTime()
@@ -355,7 +367,7 @@ func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := ac.mutation.PhotoURL(); ok {
 		_spec.SetField(account.FieldPhotoURL, field.TypeString, value)
-		_node.PhotoURL = value
+		_node.PhotoURL = &value
 	}
 	if value, ok := ac.mutation.UID(); ok {
 		_spec.SetField(account.FieldUID, field.TypeString, value)

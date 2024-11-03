@@ -28,7 +28,7 @@ type User struct {
 	// PhoneNumber holds the value of the "phone_number" field.
 	PhoneNumber string `json:"phone_number,omitempty"`
 	// PhotoURL holds the value of the "photo_url" field.
-	PhotoURL string `json:"photo_url,omitempty"`
+	PhotoURL *string `json:"photo_url,omitempty"`
 	// UID holds the value of the "uid" field.
 	UID string `json:"uid,omitempty"`
 	// AddressID holds the value of the "address_id" field.
@@ -131,7 +131,8 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field photo_url", values[i])
 			} else if value.Valid {
-				u.PhotoURL = value.String
+				u.PhotoURL = new(string)
+				*u.PhotoURL = value.String
 			}
 		case user.FieldUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -228,8 +229,10 @@ func (u *User) String() string {
 	builder.WriteString("phone_number=")
 	builder.WriteString(u.PhoneNumber)
 	builder.WriteString(", ")
-	builder.WriteString("photo_url=")
-	builder.WriteString(u.PhotoURL)
+	if v := u.PhotoURL; v != nil {
+		builder.WriteString("photo_url=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("uid=")
 	builder.WriteString(u.UID)

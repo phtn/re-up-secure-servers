@@ -17,7 +17,7 @@ entd:
 	go run -mod=mod entgo.io/ent/cmd/ent describe ./ent/schema
 
 entm:
-	atlas migrate diff \
+	atlas migrate diff $(f) \
 	--dir "file://ent/migrate/migrations" \
 	--to "ent://ent/schema?globalindex=1" \
 	--dev-url "postgres://xpriori:phtn458@localhost:5432/dpqb?search_path=public&sslmode=disable"
@@ -37,7 +37,7 @@ pqd:
 
 atlasg:
 	atlas migrate new $(n) \
-	--dir "file://ent/migrate/migrations" \
+	--dir "file://ent/migrate/migrations"
 
 
 atlasp:

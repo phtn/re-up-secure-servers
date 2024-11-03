@@ -104,6 +104,14 @@ func (uc *UserCreate) SetAddressID(s string) *UserCreate {
 	return uc
 }
 
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAddressID(s *string) *UserCreate {
+	if s != nil {
+		uc.SetAddressID(*s)
+	}
+	return uc
+}
+
 // SetCreateTime sets the "create_time" field.
 func (uc *UserCreate) SetCreateTime(t time.Time) *UserCreate {
 	uc.mutation.SetCreateTime(t)
@@ -219,6 +227,10 @@ func (uc *UserCreate) defaults() {
 	if _, ok := uc.mutation.Nickname(); !ok {
 		v := user.DefaultNickname
 		uc.mutation.SetNickname(v)
+	}
+	if _, ok := uc.mutation.AddressID(); !ok {
+		v := user.DefaultAddressID
+		uc.mutation.SetAddressID(v)
 	}
 	if _, ok := uc.mutation.CreateTime(); !ok {
 		v := user.DefaultCreateTime()
@@ -352,7 +364,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.PhotoURL(); ok {
 		_spec.SetField(user.FieldPhotoURL, field.TypeString, value)
-		_node.PhotoURL = value
+		_node.PhotoURL = &value
 	}
 	if value, ok := uc.mutation.UID(); ok {
 		_spec.SetField(user.FieldUID, field.TypeString, value)

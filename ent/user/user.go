@@ -96,6 +96,8 @@ var (
 	PhotoURLValidator func(string) error
 	// UIDValidator is a validator for the "uid" field. It is called by the builders before save.
 	UIDValidator func(string) error
+	// DefaultAddressID holds the default value on creation for the "address_id" field.
+	DefaultAddressID string
 	// AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
 	AddressIDValidator func(string) error
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.

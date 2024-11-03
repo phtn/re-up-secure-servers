@@ -28,7 +28,7 @@ type Group struct {
 	// PhoneNumber holds the value of the "phone_number" field.
 	PhoneNumber string `json:"phone_number,omitempty"`
 	// PhotoURL holds the value of the "photo_url" field.
-	PhotoURL string `json:"photo_url,omitempty"`
+	PhotoURL *string `json:"photo_url,omitempty"`
 	// UID holds the value of the "uid" field.
 	UID string `json:"uid,omitempty"`
 	// AddressID holds the value of the "address_id" field.
@@ -144,7 +144,8 @@ func (gr *Group) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field photo_url", values[i])
 			} else if value.Valid {
-				gr.PhotoURL = value.String
+				gr.PhotoURL = new(string)
+				*gr.PhotoURL = value.String
 			}
 		case group.FieldUID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -252,8 +253,10 @@ func (gr *Group) String() string {
 	builder.WriteString("phone_number=")
 	builder.WriteString(gr.PhoneNumber)
 	builder.WriteString(", ")
-	builder.WriteString("photo_url=")
-	builder.WriteString(gr.PhotoURL)
+	if v := gr.PhotoURL; v != nil {
+		builder.WriteString("photo_url=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("uid=")
 	builder.WriteString(gr.UID)

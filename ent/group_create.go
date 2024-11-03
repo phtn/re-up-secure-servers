@@ -105,6 +105,14 @@ func (gc *GroupCreate) SetAddressID(s string) *GroupCreate {
 	return gc
 }
 
+// SetNillableAddressID sets the "address_id" field if the given value is not nil.
+func (gc *GroupCreate) SetNillableAddressID(s *string) *GroupCreate {
+	if s != nil {
+		gc.SetAddressID(*s)
+	}
+	return gc
+}
+
 // SetCreateTime sets the "create_time" field.
 func (gc *GroupCreate) SetCreateTime(t time.Time) *GroupCreate {
 	gc.mutation.SetCreateTime(t)
@@ -250,6 +258,10 @@ func (gc *GroupCreate) defaults() {
 		v := group.DefaultNickname
 		gc.mutation.SetNickname(v)
 	}
+	if _, ok := gc.mutation.AddressID(); !ok {
+		v := group.DefaultAddressID
+		gc.mutation.SetAddressID(v)
+	}
 	if _, ok := gc.mutation.CreateTime(); !ok {
 		v := group.DefaultCreateTime()
 		gc.mutation.SetCreateTime(v)
@@ -392,7 +404,7 @@ func (gc *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := gc.mutation.PhotoURL(); ok {
 		_spec.SetField(group.FieldPhotoURL, field.TypeString, value)
-		_node.PhotoURL = value
+		_node.PhotoURL = &value
 	}
 	if value, ok := gc.mutation.UID(); ok {
 		_spec.SetField(group.FieldUID, field.TypeString, value)

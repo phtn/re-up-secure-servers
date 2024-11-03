@@ -95,6 +95,8 @@ func init() {
 	}()
 	// accountDescAddressID is the schema descriptor for address_id field.
 	accountDescAddressID := accountMixinFields0[6].Descriptor()
+	// account.DefaultAddressID holds the default value on creation for the address_id field.
+	account.DefaultAddressID = accountDescAddressID.Default.(string)
 	// account.AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
 	account.AddressIDValidator = accountDescAddressID.Validators[0].(func(string) error)
 	// accountDescCreateTime is the schema descriptor for create_time field.
@@ -210,6 +212,8 @@ func init() {
 	}()
 	// groupDescAddressID is the schema descriptor for address_id field.
 	groupDescAddressID := groupMixinFields0[6].Descriptor()
+	// group.DefaultAddressID holds the default value on creation for the address_id field.
+	group.DefaultAddressID = groupDescAddressID.Default.(string)
 	// group.AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
 	group.AddressIDValidator = groupDescAddressID.Validators[0].(func(string) error)
 	// groupDescCreateTime is the schema descriptor for create_time field.
@@ -329,6 +333,8 @@ func init() {
 	}()
 	// userDescAddressID is the schema descriptor for address_id field.
 	userDescAddressID := userMixinFields0[6].Descriptor()
+	// user.DefaultAddressID holds the default value on creation for the address_id field.
+	user.DefaultAddressID = userDescAddressID.Default.(string)
 	// user.AddressIDValidator is a validator for the "address_id" field. It is called by the builders before save.
 	user.AddressIDValidator = userDescAddressID.Validators[0].(func(string) error)
 	// userDescCreateTime is the schema descriptor for create_time field.

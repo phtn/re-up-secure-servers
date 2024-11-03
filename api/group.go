@@ -19,10 +19,10 @@ func CreateGroup(c *fiber.Ctx) error {
 		Nickname:    v.Nickname,
 		PhoneNumber: v.PhoneNumber,
 		Email:       v.Email,
-		PhotoURL:    v.PhotoURL,
+		PhotoURL:    &v.PhotoURL,
 	}
 
-	result := psql.CreateNewGroup(data.Name, data.Email, data.PhoneNumber, v.UID, v.GroupCode, data.AccountID, data.PhotoURL, true)
+	result := psql.CreateNewGroup(data.Name, data.Email, data.PhoneNumber, v.UID, v.GroupCode, data.AccountID, v.PhotoURL, true)
 
 	return utils.FiberResponse(c, utils.OK, nil, utils.JsonData{Data: map[string]interface{}{"group_uid": result, "status": "success"}})
 }

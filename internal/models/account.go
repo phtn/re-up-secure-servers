@@ -30,13 +30,14 @@ const (
 )
 
 type Account struct {
-	UID    string `json:"uid,omitempty"`
-	Name   string `json:"name,omitempty"`
-	Email  string `json:"email,omitempty"`
-	APIKey string `json:"api_key,omitempty"`
-	Active bool   `json:"is_active,omitempty"`
-	Role   Role   `json:"role,omitempty"`
-	CrTime string `json:"creation_time,omitempty"`
+	UID       string `json:"uid,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Email     string `json:"email,omitempty"`
+	APIKey    string `json:"api_key,omitempty"`
+	Active    bool   `json:"is_active,omitempty"`
+	Role      Role   `json:"role,omitempty"`
+	CrTime    string `json:"creation_time,omitempty"`
+	AddressId string `json:"address_id,omitempty"`
 }
 
 type CustomClaims struct {

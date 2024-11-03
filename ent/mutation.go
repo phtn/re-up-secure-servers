@@ -375,7 +375,7 @@ func (m *AccountMutation) PhotoURL() (r string, exists bool) {
 // OldPhotoURL returns the old "photo_url" field's value of the Account entity.
 // If the Account object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AccountMutation) OldPhotoURL(ctx context.Context) (v string, err error) {
+func (m *AccountMutation) OldPhotoURL(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPhotoURL is only allowed on UpdateOne operations")
 	}
@@ -1441,7 +1441,7 @@ func (m *GroupMutation) PhotoURL() (r string, exists bool) {
 // OldPhotoURL returns the old "photo_url" field's value of the Group entity.
 // If the Group object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GroupMutation) OldPhotoURL(ctx context.Context) (v string, err error) {
+func (m *GroupMutation) OldPhotoURL(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPhotoURL is only allowed on UpdateOne operations")
 	}
@@ -2673,7 +2673,7 @@ func (m *UserMutation) PhotoURL() (r string, exists bool) {
 // OldPhotoURL returns the old "photo_url" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldPhotoURL(ctx context.Context) (v string, err error) {
+func (m *UserMutation) OldPhotoURL(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPhotoURL is only allowed on UpdateOne operations")
 	}

@@ -7,12 +7,17 @@ import (
 
 func NewUser(name string, email string, phone_number string, uid string, group_code string) string {
 
+	group_id, err := GetGroupId(group_code)
+	L.Fail("new-user", "get-group-id", group_id, err)
+
 	user, err := pq.User.
 		Create().
 		SetName(name).
 		SetEmail(email).
 		SetPhoneNumber(phone_number).
+		SetPhotoURL("").
 		SetGroupCode(group_code).
+		SetGroupID(group_id).
 		SetIsActive(group_code != "").
 		SetUID(uid).
 		Save(ctx)

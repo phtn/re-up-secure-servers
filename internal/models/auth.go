@@ -38,10 +38,11 @@ type AuthKey struct {
 }
 
 type VResult struct {
-	Key      string `json:"key"`
+	Key      string `json:"key,omitempty"`
 	Verified bool   `json:"verified"`
-	Exp      int16  `json:"exp"`
-	IsActive bool   `josn:"is_active,omitempty"`
+	Expiry   int16  `json:"expiry,omitempty"`
+	IsActive bool   `json:"is_active,omitempty"`
+	Cookie   string `json:"cookie,omitempty"`
 }
 
 type V interface{}

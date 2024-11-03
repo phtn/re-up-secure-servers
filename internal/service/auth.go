@@ -5,8 +5,8 @@ import (
 	"fast/internal/models"
 	"fast/internal/psql"
 	"fast/internal/rdb"
-	"fast/internal/shield"
 	"fast/pkg/utils"
+	"time"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -22,7 +22,7 @@ var (
 	L = utils.NewConsole()
 )
 
-func eqc(k string, verified bool, t *auth.Token, is_active bool) models.VResult {
+func eqc(k string, verified bool, t *auth.Token, is_active bool, cookie string) models.VResult {
 	if !verified {
 		return models.VResult{
 			Verified: verified,
@@ -31,8 +31,9 @@ func eqc(k string, verified bool, t *auth.Token, is_active bool) models.VResult 
 	return models.VResult{
 		Key:      k,
 		Verified: verified,
-		Exp:      int16(t.Expires),
+		Expiry:   int16(t.Expires),
 		IsActive: is_active,
+		Cookie:   cookie,
 	}
 }
 
@@ -43,21 +44,23 @@ func VerifyIdToken(ctx context.Context, fire *firebase.App, out *models.VerifyTo
 	client, err := fire.Auth(context.Background())
 	L.Fail(r, f, err)
 
-	k := shield.NewKey(out.Email)
 	t, err := client.VerifyIDToken(ctx, out.IDToken)
 	L.Fail(r, f, err)
+
+	cookie, err := client.SessionCookie(ctx, out.IDToken, 96*3*time.Hour)
+	L.Fail(r, f, "session-cookie", err)
 
 	verified := t.UID == out.UID
 	L.Info("verify", "id_token", verified)
 
 	exists := psql.CheckIfUserExists(t.UID)
-	is_active := out.GroupCode != ""
+	is_active := true
 
 	if verified && !exists {
 		new_user := psql.NewUser("BrightOne", out.Email, "+639100000000", out.UID, out.GroupCode)
 		L.Info("new-user", "sign-up", new_user)
 	}
-	return eqc(k, verified, t, is_active)
+	return eqc(t.UID, verified, t, is_active, cookie)
 }
 
 func GetUserRecord(ctx context.Context, fire *firebase.App, v *models.VerifyToken) *models.Verified {
@@ -97,13 +100,13 @@ func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithA
 		L.Good(r, f, "verified", err)
 
 		verified = t.UID == v.UID
-		return eqc(k, verified, t, false)
+		return eqc(k, verified, t, false, "")
 	}
 
 	verified = token.UID == v.UID
 	L.Good("verify", "id_token", verified)
 
-	return eqc(k, verified, token, false)
+	return eqc(k, verified, token, false, "")
 }
 
 func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bool {
