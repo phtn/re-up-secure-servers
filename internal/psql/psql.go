@@ -34,13 +34,12 @@ func PsqlHealth() interface{} {
 	}
 }
 
-func CheckAPIKey(api_key string, uid string) (bool, error) {
+func CheckAPIKey(api_key string) (bool, error) {
 
 	account, err := pq.Account.
 		Query().Where(
 		account.APIKey(api_key),
-		account.IsActive(true),
-		account.UID(uid)).Only(ctx)
+		account.IsActive(true)).First(ctx)
 
 	L.Fail("accounts", "query-row", err)
 	L.Good("accounts", "active", account.IsActive, err)

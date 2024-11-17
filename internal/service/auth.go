@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"fast/config"
 	"fast/internal/models"
 	"fast/internal/psql"
 	"fast/internal/rdb"
 	"fast/pkg/utils"
+	"strings"
 	"time"
 
 	firebase "firebase.google.com/go/v4"
@@ -19,7 +21,8 @@ const (
 )
 
 var (
-	L = utils.NewConsole()
+	fire = config.LoadConfig().Fire.Auth
+	L    = utils.NewConsole()
 )
 
 func eqc(k string, verified bool, t *auth.Token, is_active bool, cookie string) models.VResult {
@@ -37,17 +40,25 @@ func eqc(k string, verified bool, t *auth.Token, is_active bool, cookie string) 
 	}
 }
 
-func VerifyIdToken(ctx context.Context, fire *firebase.App, out *models.VerifyToken) models.VResult {
-	var r, f = "vtoken", "auth"
+func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
+	var r, f = "v-idToken", "service: VerifyIdToken"
 
 	L.Info(out.IDToken[:8], out.Email, out.UID)
-	client, err := fire.Auth(context.Background())
-	L.Fail(r, f, err)
 
-	t, err := client.VerifyIDToken(ctx, out.IDToken)
-	L.Fail(r, f, err)
+	t, err := fire.VerifyIDToken(ctx, out.IDToken)
+	is_expired := expiryCheck(err)
+	L.Fail(r, f, "is_expired", is_expired, err)
 
-	cookie, err := client.SessionCookie(ctx, out.IDToken, 96*3*time.Hour)
+	if is_expired {
+		token, err := fire.VerifyIDTokenAndCheckRevoked(ctx, out.IDToken)
+		L.Fail("refresh-token", "service: VerifyIdToken", err)
+
+		if token.UID == t.UID {
+			out = models.VerifyToken{IDToken: out.Refresh}
+		}
+	}
+
+	cookie, err := fire.SessionCookie(ctx, out.IDToken, 96*3*time.Hour)
 	L.Fail(r, f, "session-cookie", err)
 
 	verified := t.UID == out.UID
@@ -63,14 +74,10 @@ func VerifyIdToken(ctx context.Context, fire *firebase.App, out *models.VerifyTo
 	return eqc(t.UID, verified, t, is_active, cookie)
 }
 
-func GetUserRecord(ctx context.Context, fire *firebase.App, v *models.VerifyToken) *models.Verified {
+func GetUserRecord(ctx context.Context, v *models.VerifyToken) *models.Verified {
 	var r, f = "id-token", "verified"
 
-	// utils.Info(v.IDToken[:8], v.Email, v.UID)
-	client, err := fire.Auth(ctx)
-	L.Fail(r, f, err)
-
-	user, err := client.GetUser(ctx, v.UID)
+	user, err := fire.GetUser(ctx, v.UID)
 	L.Fail(r, f, err)
 
 	verified := user.UID == v.UID
@@ -82,11 +89,8 @@ func GetUserRecord(ctx context.Context, fire *firebase.App, v *models.VerifyToke
 	}
 }
 
-func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithAuthKey) models.VResult {
+func VerifyAuthKey(ctx context.Context, v models.VerifyWithAuthKey) models.VResult {
 	var r, f = POST, "authky"
-
-	client, err := fire.Auth(context.Background())
-	L.Fail(r, f, err)
 
 	k := v.AuthKey
 	token, err := rdb.RetrieveToken(k)
@@ -95,7 +99,7 @@ func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithA
 	verified := false
 
 	if token == nil {
-		t, err := client.VerifyIDToken(ctx, v.IDToken)
+		t, err := fire.VerifyIDToken(ctx, v.IDToken)
 		L.Fail(r, f, err)
 		L.Good(r, f, "verified", err)
 
@@ -109,16 +113,16 @@ func VerifyAuthKey(ctx context.Context, fire *firebase.App, v models.VerifyWithA
 	return eqc(k, verified, token, false, "")
 }
 
-func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bool {
+func VerifyAdmin(ctx context.Context, v *UserCredentials) bool {
 	var r, f = "verify", "admin"
 
-	client, err := fire.Auth(context.Background())
-	L.Fail(r, f, err)
+	// client, err := fire.Auth(context.Background())
+	// L.Fail(r, f, err)
 
 	if v.IDToken == "" {
 		return false
 	}
-	t, err := client.VerifyIDToken(ctx, v.IDToken)
+	t, err := fire.VerifyIDToken(ctx, v.IDToken)
 	L.Fail(r, f, err)
 
 	verified := t.UID == v.UID
@@ -145,20 +149,53 @@ func VerifyAdmin(ctx context.Context, fire *firebase.App, v *UserCredentials) bo
 	return verified && with_claims
 }
 
-func TokenVerification(ctx context.Context, fire *firebase.App, v models.VerifyToken) bool {
-	var f, r = "verify", POST
+func GetUserInfo(ctx context.Context, uid string) (*auth.UserRecord, error) {
+	user, err := fire.GetUser(ctx, uid)
+	L.FailR("get-user", "service", "firebase", err)
+	timestamp := user.TokensValidAfterMillis / 1000
+	L.Info("token-validity", "timestamp", timestamp, "seconds")
+	return user, nil
+}
 
-	L.Info(v.IDToken[:8], v.Email, v.UID)
-	client, err := fire.Auth(context.Background())
-	L.Fail(r, f, err)
+func TokenVerification(ctx context.Context, v models.UserRefresh) (*models.TokenResponse, error) {
+	t, err := fire.VerifyIDToken(ctx, v.IDToken)
+	L.Fail("fire.VerifyIDToken", "service: TokenVerification", err)
+	is_expired := expiryCheck(err)
 
-	t, err := client.VerifyIDToken(ctx, v.IDToken)
-	L.Fail(r, f, err)
+	var response *models.TokenResponse
 
-	verified := t.UID == v.UID
-	L.Info("verify", "id_token", verified)
+	if is_expired {
+		token, err := fire.VerifyIDTokenAndCheckRevoked(ctx, v.Refresh)
+		L.Fail("refresh-token", "service: TokenVerification", v.Refresh, err)
 
-	return verified
+		if err != nil {
+			L.Fail("checked-revoked", v.Refresh, err)
+			return nil, err
+		}
+
+		response = &models.TokenResponse{
+			Token:    token,
+			Verified: token.UID == v.UID,
+		}
+		return response, nil
+	}
+
+	response = &models.TokenResponse{
+		Token:    t,
+		Verified: t.UID == v.UID,
+	}
+	return response, nil
+}
+
+func expiryCheck(err error) bool {
+	expired := false
+	if err != nil {
+		if strings.Contains(err.Error(), "expired") {
+			expired = true
+		}
+		return expired
+	}
+	return expired
 }
 
 // func CreateAgentCode(v models.VerifyToken) AgentCodeResponse {
@@ -185,13 +222,13 @@ func NewToken(uid models.Uid, ctx context.Context, fire *firebase.App) string {
 	return token
 }
 
-func GetUser(ctx context.Context, fire *firebase.App, uid models.Uid) *auth.UserRecord {
+func GetUser(ctx context.Context, uid models.Uid) *auth.UserRecord {
 	var f, r = "getUser", POST
 
-	client, err := fire.Auth(context.Background())
-	L.Fail(r, f, err)
+	// client, err := fire.Auth(context.Background())
+	// L.Fail(r, f, err)
 
-	usr, err := client.GetUser(ctx, uid.UID)
+	usr, err := fire.GetUser(ctx, uid.UID)
 	L.Fail(r, f, err)
 
 	if usr != nil {

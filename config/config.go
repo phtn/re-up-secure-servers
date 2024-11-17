@@ -14,15 +14,20 @@ import (
 	_ "github.com/lib/pq"
 
 	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
 	"github.com/redis/go-redis/v9"
 
 	// _ "github.com/tursodatabase/libsql-client-go/libsql"
 	"google.golang.org/api/option"
 )
 
+type Firebase struct {
+	Auth *auth.Client
+}
+
 type Config struct {
 	Addr          string
-	Fire          *firebase.App
+	Fire          *Firebase
 	Rdbs          *redis.Client
 	Pq            *ent.Client
 	ApiKey        string
@@ -31,7 +36,7 @@ type Config struct {
 }
 
 var (
-	fire *firebase.App
+	fire *Firebase
 	rdbs *redis.Client
 	pq   *ent.Client
 	addr string
@@ -77,7 +82,7 @@ func initRedis() *redis.Client {
 	return rdb
 }
 
-func initFirebase() *firebase.App {
+func initFirebase() *Firebase {
 
 	cwd, err := os.Getwd()
 	L.Fail("fs", "cwd", err)
@@ -91,10 +96,13 @@ func initFirebase() *firebase.App {
 
 	opt := option.WithCredentialsFile(sa)
 
-	fire, err := firebase.NewApp(context.Background(), nil, opt)
-	L.Fail("init", "firebase", err)
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	L.Fail("init", "firebase-new-app", err)
 
-	return fire
+	auth, err := app.Auth(context.Background())
+	L.Fail("init", "firebase-auth", err)
+
+	return &Firebase{Auth: auth}
 }
 
 // func initialiazeDB() *sql.DB {

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fast/config"
 	"fast/internal/psql"
 
 	"firebase.google.com/go/v4/auth"
@@ -25,16 +24,15 @@ type UserCredentials struct {
 }
 
 var (
-	ctx  = context.Background()
-	fire = config.LoadConfig().Fire
+	ctx = context.Background()
 )
 
 func NewCustomClaims(u *UserCredentials) (*auth.Token, error) {
-	client, err := fire.Auth(ctx)
-	L.Fail("firebs", "unable to get auth client", err)
+	// client, err := fire.Auth(ctx)
+	// L.Fail("firebs", "unable to get auth client", err)
 
 	customClaims := u.CustomClaims
-	t, err := client.VerifyIDToken(ctx, u.IDToken)
+	t, err := fire.VerifyIDToken(ctx, u.IDToken)
 	L.Fail("authv", "unable to verify id token", err)
 
 	verified := t.UID == u.UID
@@ -47,10 +45,10 @@ func NewCustomClaims(u *UserCredentials) (*auth.Token, error) {
 	}
 
 	if verified && authorized {
-		err = client.SetCustomUserClaims(ctx, t.Subject, customClaims)
+		err = fire.SetCustomUserClaims(ctx, t.Subject, customClaims)
 		L.Fail("claim", "unable to set custom claims", err)
 
-		token, err := client.VerifyIDToken(ctx, u.IDToken)
+		token, err := fire.VerifyIDToken(ctx, u.IDToken)
 		claims := token.Claims
 
 		if manager, ok := claims["manager"]; ok {
@@ -65,11 +63,11 @@ func NewCustomClaims(u *UserCredentials) (*auth.Token, error) {
 }
 
 func NewAdminCustomClaims(u *UserCredentials) (*auth.Token, error) {
-	client, err := fire.Auth(ctx)
-	L.Fail("firebs", "unable to get auth client", err)
+	// client, err := fire.Auth(ctx)
+	// L.Fail("firebs", "unable to get auth client", err)
 
 	customClaims := u.CustomClaims
-	t, err := client.VerifyIDToken(ctx, u.IDToken)
+	t, err := fire.VerifyIDToken(ctx, u.IDToken)
 	L.Fail("authv", "unable to verify id token", err)
 
 	authorized := false
@@ -83,9 +81,9 @@ func NewAdminCustomClaims(u *UserCredentials) (*auth.Token, error) {
 	}
 
 	if verified && authorized && is_admin {
-		err = client.SetCustomUserClaims(ctx, t.Subject, customClaims)
+		err = fire.SetCustomUserClaims(ctx, t.Subject, customClaims)
 		L.Fail("claim", "unable to set admin claims", err)
-		token, err := client.VerifyIDToken(ctx, u.IDToken)
+		token, err := fire.VerifyIDToken(ctx, u.IDToken)
 		L.Fail("claim", "unable to verify id token", err)
 		claims := token.Claims
 
@@ -101,22 +99,22 @@ func NewAdminCustomClaims(u *UserCredentials) (*auth.Token, error) {
 }
 
 func NewOneTimeClaim(u *UserCredentials) (*auth.Token, error) {
-	client, err := fire.Auth(ctx)
-	L.Fail("firebs", "unable to get auth client", err)
+	// client, err := fire.Auth(ctx)
+	// L.Fail("firebs", "unable to get auth client", err)
 
 	custom_claims := map[string]interface{}{"admin": true}
-	t, err := client.VerifyIDToken(ctx, u.IDToken)
+	t, err := fire.VerifyIDToken(ctx, u.IDToken)
 	L.Fail("authv", "unable to verify id token", err)
 
 	verified := t.UID == u.UID
 
 	if verified {
 		L.Info("claim", "one-time-claim", t.Issuer)
-		err = client.SetCustomUserClaims(ctx, t.Subject, custom_claims)
+		err = fire.SetCustomUserClaims(ctx, t.Subject, custom_claims)
 		L.Fail("claim", "unable to set admin claims", err)
 		L.Good("claim", "one-time-claim", "ok", err)
 
-		token, err := client.VerifyIDToken(ctx, u.IDToken)
+		token, err := fire.VerifyIDToken(ctx, u.IDToken)
 		L.Fail("claim", "unable to verify id token", err)
 		claims := token.Claims
 

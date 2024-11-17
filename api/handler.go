@@ -76,14 +76,49 @@ func DatabaseHealth(c *fiber.Ctx) error {
 }
 
 func VerifyIdToken(c *fiber.Ctx) error {
-	out := new(models.VerifyToken)
+	var out models.VerifyToken
 	if err := c.BodyParser(out); err != nil {
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: out})
 	}
-	d := service.VerifyIdToken(c.Context(), fire, out)
+
+	refresh := c.Get("x-refresh-token")
+	out = models.VerifyToken{Refresh: refresh}
+	d := service.VerifyIdToken(c.Context(), out)
 
 	data := utils.JsonData{Data: d}
 	return utils.FiberCookie(c, d.Cookie, utils.OK, nil, data)
+}
+
+func GetUserInfo(c *fiber.Ctx) error {
+	var out models.GetUserInfo
+	var data utils.JsonData
+	if err := c.BodyParser(&out); err != nil {
+		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: out})
+	}
+	refresh := c.Get("x-refresh-token")
+	user_refresh := models.UserRefresh{
+		IDToken: out.IDToken,
+		UID:     out.UID,
+		Refresh: refresh,
+	}
+	L.Info("INFO", "handler: GetUserInfo", user_refresh.Refresh)
+
+	response, err := service.TokenVerification(c.Context(), user_refresh)
+	L.Warn("verification", "service: TokenVerification", err)
+	if err != nil {
+		return utils.FiberResponse(c, utils.Unauthorized, err, data)
+	}
+
+	data = utils.JsonData{Data: &response.Verified}
+	if !response.Verified {
+		return utils.FiberResponse(c, utils.Unauthorized, nil, data)
+	}
+
+	user, err := service.GetUserInfo(c.Context(), out.UID)
+	L.FailR("get-user", "firebase", err)
+
+	data = utils.JsonData{Data: user}
+	return utils.FiberResponse(c, utils.OK, nil, data)
 }
 
 func CreateAgentCode(c *fiber.Ctx) error {
@@ -126,9 +161,9 @@ func GetClaims(c *fiber.Ctx) error {
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
 	}
 	ctx := context.Background()
-	t := service.GetUserRecord(ctx, fire, out)
+	t := service.GetUserRecord(ctx, out)
 
-	data := utils.JsonData{Data: t.UserRecord.CustomClaims}
+	data := utils.JsonData{Data: t.UserRecord}
 	L.Info("get claims", "data", data)
 
 	return utils.FiberResponse(c, utils.OK, nil, data)

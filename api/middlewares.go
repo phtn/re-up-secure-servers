@@ -24,14 +24,17 @@ func RootRoute(c *fiber.Ctx) error {
 
 func AuthMiddleware(c *fiber.Ctx) error {
 	api_key := c.Get("X-API-Key")
+	L.Info("auth-mid", "check-api-key", api_key)
 	if api_key == "" {
 		return utils.FiberResponse(c, utils.Unauthorized, nil, utils.JsonData{Data: "api-key-missing"})
 	}
-	a := new(models.Account)
+	a := models.Account{}
 	if err := c.BodyParser(&a); err != nil {
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "unable-to-parse-body"})
 	}
-	active, err := psql.CheckAPIKey(api_key, a.UID)
+	L.Info("auth-mid", "check-account", a)
+
+	active, err := psql.CheckAPIKey(api_key)
 	L.Fail("mdware", "api-key", err)
 
 	if !active {
@@ -43,13 +46,13 @@ func AuthMiddleware(c *fiber.Ctx) error {
 
 func ClaimsMiddleware(c *fiber.Ctx) error {
 
-	out := new(models.VerifyToken)
-	if err := c.BodyParser(out); err != nil {
+	var out *models.VerifyToken
+	if err := c.BodyParser(&out); err != nil {
 		L.Fail("mdware", "body-parser", err)
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
 	}
 	ctx := context.Background()
-	t := service.GetUserRecord(ctx, fire, out)
+	t := service.GetUserRecord(ctx, out)
 
 	withClaims := t.UserRecord.CustomClaims["admin"] != nil || t.UserRecord.CustomClaims["manager"] != nil
 
@@ -62,13 +65,13 @@ func ClaimsMiddleware(c *fiber.Ctx) error {
 
 func AdminClaimsMiddleware(c *fiber.Ctx) error {
 
-	out := new(models.VerifyToken)
+	out := models.VerifyToken{}
 	if err := c.BodyParser(out); err != nil {
 		L.Fail("mdware", "body-parser", err)
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
 	}
 	ctx := context.Background()
-	t := service.GetUserRecord(ctx, fire, out)
+	t := service.GetUserRecord(ctx, &out)
 
 	withClaims := t.UserRecord.CustomClaims["admin"] != nil
 

@@ -13,9 +13,15 @@ type UserAccess struct {
 }
 
 type UserRefresh struct {
-	RefreshToken string `json:"refresh_token"`
-	UID          string `json:"uid"`
-	Email        string `json:"email"`
+	IDToken string `json:"id_token"`
+	Refresh string `json:"refresh"`
+	UID     string `json:"uid"`
+}
+
+type TokenResponse struct {
+	Token    *auth.Token `json:"token"`
+	Error    string      `json:"error,omitempty"`
+	Verified bool        `json:"verified"`
 }
 
 type VerifyToken struct {
@@ -23,6 +29,12 @@ type VerifyToken struct {
 	UID       string `json:"uid"`
 	Email     string `json:"email"`
 	GroupCode string `json:"group_code,omitempty"`
+	Refresh   string `json:"refresh,omitempty"`
+}
+
+type GetUserInfo struct {
+	IDToken string `json:"id_token"`
+	UID     string `json:"uid"`
 }
 
 type VerifyWithAuthKey struct {

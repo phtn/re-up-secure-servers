@@ -47,6 +47,7 @@ func main() {
 	// AUTHENTICATED
 	authGroup := server.Group(api.AuthPath, withAuth...)
 	authGroup.Post(api.VerifyIdTokenPath, api.VerifyIdToken)
+	authGroup.Post(api.GetUserPath, api.GetUserInfo)
 	authGroup.Post(api.GetClaimsPath, api.GetClaims)
 
 	// WITH CLAIMS
