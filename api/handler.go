@@ -77,16 +77,14 @@ func DatabaseHealth(c *fiber.Ctx) error {
 
 func VerifyIdToken(c *fiber.Ctx) error {
 	var out models.VerifyToken
-	if err := c.BodyParser(out); err != nil {
+	if err := c.BodyParser(&out); err != nil {
 		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: out})
 	}
 
-	refresh := c.Get("x-refresh-token")
-	out = models.VerifyToken{Refresh: refresh}
-	d := service.VerifyIdToken(c.Context(), out)
+	result := service.VerifyIdToken(c.Context(), out)
 
-	data := utils.JsonData{Data: d}
-	return utils.FiberCookie(c, d.Cookie, utils.OK, nil, data)
+	data := utils.JsonData{Data: result}
+	return utils.FiberCookie(c, result.Cookie, utils.OK, nil, data)
 }
 
 func GetUserInfo(c *fiber.Ctx) error {

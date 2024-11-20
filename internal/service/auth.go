@@ -7,6 +7,8 @@ import (
 	"fast/internal/psql"
 	"fast/internal/rdb"
 	"fast/pkg/utils"
+	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -58,8 +60,8 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
 		}
 	}
 
-	cookie, err := fire.SessionCookie(ctx, out.IDToken, 96*3*time.Hour)
-	L.Fail(r, f, "session-cookie", err)
+	// cookie, err := fire.SessionCookie(ctx, out.IDToken, 96*3*time.Hour)
+	// L.Fail(r, f, "session-cookie", err)
 
 	verified := t.UID == out.UID
 	L.Info("verify", "id_token", verified)
@@ -68,10 +70,26 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
 	is_active := true
 
 	if verified && !exists {
-		new_user := psql.NewUser("BrightOne", out.Email, "+639100000000", out.UID, out.GroupCode)
+		phone_number := mock_phone()
+		if out.GroupCode == "" {
+			neo_user := psql.NewUser("Neo", out.Email, phone_number, out.UID, "NEO")
+			L.Info("neo-user-insert", "service: VerifyIdToken", "uid", neo_user)
+			return eqc("neo", verified, t, is_active, "cookie")
+		}
+		new_user := psql.NewUser("BrightOne", out.Email, phone_number, out.UID, out.GroupCode)
 		L.Info("new-user", "sign-up", new_user)
+
+		if new_user != "" {
+			claim := CustomClaims{
+				"agent": true,
+			}
+			token, err := AddCustomClaim(out.IDToken, out.UID, claim)
+			L.Fail("add-claim", "agent", err)
+			L.Good("add-claim", "agent", "success", err)
+			return eqc(token.UID, verified, token, is_active, "cookie")
+		}
 	}
-	return eqc(t.UID, verified, t, is_active, cookie)
+	return eqc(t.UID, verified, t, is_active, "cookie")
 }
 
 func GetUserRecord(ctx context.Context, v *models.VerifyToken) *models.Verified {
@@ -254,4 +272,13 @@ func CreateUser(ctx context.Context, client *auth.Client) *auth.UserRecord {
 
 	L.Good(POST, f, usr)
 	return usr
+}
+
+func mock_phone() string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano())) // Seed the random number generator
+	random := 100000 + r.Intn(900000)
+
+	random_str := strconv.Itoa(random)
+	phone := "+63915" + random_str + "0"
+	return phone
 }

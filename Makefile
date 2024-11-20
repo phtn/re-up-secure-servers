@@ -2,7 +2,9 @@ run:
 	go run cmd/fast/main.go
 
 b:
-	go build -o ./build/fast cmd/fast/main.go
+	@go build -o ./build/fast cmd/fast/main.go && \
+		./build/fast
+
 
 tidy:
 	go mod tidy

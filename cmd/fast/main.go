@@ -68,6 +68,12 @@ func main() {
 	// END DB HEALTH //
 
 	// TEST //
+	//
+	// customClaims := service.CustomClaims{
+	// 	"agent":   "true",
+	// 	"manager": "true",
+	// }
+	// service.AddCustomClaim("idToken", "uid", customClaims)
 
 	// END TEST //
 

@@ -27,9 +27,32 @@ var (
 	ctx = context.Background()
 )
 
+func AddCustomClaim(idToken string, uid string, customClaims CustomClaims) (*auth.Token, error) {
+
+	err := fire.SetCustomUserClaims(ctx, uid, customClaims)
+	L.FailR("add-custom-claim", uid, customClaims, err)
+
+	token, err := fire.VerifyIDToken(ctx, idToken)
+	claims := token.Claims
+
+	for k, value := range customClaims {
+		switch v := value.(type) {
+		case string:
+			if withClaim, ok := claims[k]; ok {
+				if withClaim.(bool) {
+					L.Good("claim", k, "confirmed", v)
+					return token, nil
+				}
+			}
+
+		default:
+			L.Info("agent", "k", k, "value", value)
+		}
+	}
+	return nil, err
+}
+
 func NewCustomClaims(u *UserCredentials) (*auth.Token, error) {
-	// client, err := fire.Auth(ctx)
-	// L.Fail("firebs", "unable to get auth client", err)
 
 	customClaims := u.CustomClaims
 	t, err := fire.VerifyIDToken(ctx, u.IDToken)
