@@ -38,3 +38,11 @@ func Guid() string {
 	return fmt.Sprintf("%s%s-%s-%s-%s-%s%s%s",
 		s(), s(), s(), s(), s(), s(), s(), s())
 }
+
+func DStruct[T any](generic interface{}) (T, error) {
+	if v, ok := generic.(T); ok {
+		return v, nil
+	}
+	var zeroval T
+	return zeroval, fmt.Errorf("type assertion failed")
+}

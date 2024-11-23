@@ -24,6 +24,18 @@ type TokenResponse struct {
 	Verified bool        `json:"verified"`
 }
 
+type UserActivation struct {
+	IDToken string `json:"id_token"`
+	UID     string `json:"uid"`
+	Email   string `json:"email,omitempty"`
+	HCode   string `json:"hcode"`
+}
+
+type ActivationResponse struct {
+	GroupCode string `json:"group_code"`
+	Valid     bool   `json:"valid,omitempty"`
+}
+
 type VerifyToken struct {
 	IDToken   string `json:"id_token"`
 	UID       string `json:"uid"`
@@ -50,11 +62,11 @@ type AuthKey struct {
 }
 
 type VResult struct {
-	Key      string `json:"key,omitempty"`
-	Verified bool   `json:"verified"`
-	Expiry   int16  `json:"expiry,omitempty"`
-	IsActive bool   `json:"is_active,omitempty"`
-	Cookie   string `json:"cookie,omitempty"`
+	Key       string `json:"key,omitempty"`
+	Verified  bool   `json:"verified"`
+	Expiry    int16  `json:"expiry,omitempty"`
+	IsActive  bool   `json:"is_active,omitempty"`
+	GroupCode string `json:"group_code,omitempty"`
 }
 
 type V interface{}

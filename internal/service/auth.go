@@ -6,6 +6,7 @@ import (
 	"fast/internal/models"
 	"fast/internal/psql"
 	"fast/internal/rdb"
+	"fast/internal/shield"
 	"fast/pkg/utils"
 	"math/rand"
 	"strconv"
@@ -27,18 +28,18 @@ var (
 	L    = utils.NewConsole()
 )
 
-func eqc(k string, verified bool, t *auth.Token, is_active bool, cookie string) models.VResult {
+func eqc(k string, verified bool, t *auth.Token, is_active bool, group string) models.VResult {
 	if !verified {
 		return models.VResult{
 			Verified: verified,
 		}
 	}
 	return models.VResult{
-		Key:      k,
-		Verified: verified,
-		Expiry:   int16(t.Expires),
-		IsActive: is_active,
-		Cookie:   cookie,
+		Key:       k,
+		Verified:  verified,
+		Expiry:    int16(t.Expires),
+		IsActive:  is_active,
+		GroupCode: group,
 	}
 }
 
@@ -66,7 +67,7 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
 	verified := t.UID == out.UID
 	L.Info("verify", "id_token", verified)
 
-	exists := psql.CheckIfUserExists(t.UID)
+	exists, user := psql.CheckIfUserExists(t.UID)
 	is_active := true
 
 	if verified && !exists {
@@ -74,7 +75,7 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
 		if out.GroupCode == "" {
 			neo_user := psql.NewUser("Neo", out.Email, phone_number, out.UID, "NEO")
 			L.Info("neo-user-insert", "service: VerifyIdToken", "uid", neo_user)
-			return eqc("neo", verified, t, is_active, "cookie")
+			return eqc("neo", verified, t, is_active, "NEO")
 		}
 		new_user := psql.NewUser("BrightOne", out.Email, phone_number, out.UID, out.GroupCode)
 		L.Info("new-user", "sign-up", new_user)
@@ -86,10 +87,10 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
 			token, err := AddCustomClaim(out.IDToken, out.UID, claim)
 			L.Fail("add-claim", "agent", err)
 			L.Good("add-claim", "agent", "success", err)
-			return eqc(token.UID, verified, token, is_active, "cookie")
+			return eqc(token.UID, verified, token, is_active, "NEO")
 		}
 	}
-	return eqc(t.UID, verified, t, is_active, "cookie")
+	return eqc(t.UID, verified, t, is_active, user.GroupCode)
 }
 
 func GetUserRecord(ctx context.Context, v *models.VerifyToken) *models.Verified {
@@ -105,6 +106,21 @@ func GetUserRecord(ctx context.Context, v *models.VerifyToken) *models.Verified 
 		Verified:   verified,
 		UserRecord: user,
 	}
+}
+
+func GetUserRecordByUID(ctx context.Context, uid string) (*models.Verified, error) {
+	var r, f = "get-user", "by-id"
+
+	user_record, err := fire.GetUser(ctx, uid)
+	L.FailR(r, f, err)
+
+	verified := user_record.UID == uid
+	L.Info(r, f, verified)
+
+	return &models.Verified{
+		Verified:   verified,
+		UserRecord: user_record,
+	}, nil
 }
 
 func VerifyAuthKey(ctx context.Context, v models.VerifyWithAuthKey) models.VResult {
@@ -203,6 +219,21 @@ func TokenVerification(ctx context.Context, v models.UserRefresh) (*models.Token
 		Verified: t.UID == v.UID,
 	}
 	return response, nil
+}
+
+func UnlockWithKey(key_code string) (*models.ActivationResponse, bool) {
+	key := shield.CreateActivationKey(key_code)
+	rget := rdb.RetrieveVal(key)
+
+	if !rget.Exists {
+		return nil, false
+	}
+
+	response, err := utils.DStruct[*models.ActivationResponse](rget.Value)
+	L.FailR("unlock-with-key", "rdb-value-dstruct", err)
+
+	return response, true
+
 }
 
 func expiryCheck(err error) bool {

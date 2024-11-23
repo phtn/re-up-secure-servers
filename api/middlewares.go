@@ -35,12 +35,16 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	L.Info("auth-mid", "check-account", a)
 
 	active, err := psql.CheckAPIKey(api_key)
-	L.Fail("mdware", "api-key", err)
+	L.FailR("mdware", "api-key", err)
 
-	if !active {
+	result, err := service.GetUserRecordByUID(context.Background(), a.UID)
+	L.Fail("get-user", "by-id", err)
+
+	if !active || !result.Verified {
 		return utils.FiberResponse(c, utils.Unauthorized, err, utils.JsonData{Data: "Unauthorized"})
 	}
 
+	L.Good("user", "active:", active, "verified:", result.Verified, err)
 	return c.Next()
 }
 

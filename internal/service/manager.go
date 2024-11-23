@@ -9,15 +9,22 @@ import (
 	"strings"
 )
 
-func NewAgentCode(v models.VerifyToken) *models.HCodeResponse {
-	group_code := psql.GetGroupCode(v.UID)
+func NewAgentCode(t models.VerifyToken) *models.HCodeResponse {
+	group_code := psql.GetGroupCode(t.UID)
 	key_code, err := utils.GenerateCode()
+
+	rdb_key := shield.CreateActivationKey(key_code)
+
+	v := models.ActivationResponse{GroupCode: group_code}
+	rstore := rdb.StoreVal(rdb_key, 48, v)
+	L.Info("activation-key", "stored", rstore.TTL)
+
 	L.Fail("agent_code", "agent-code", err)
 	L.Info("group_code", "psql", group_code)
 	encryptedGrpCode := shield.EncodeBase64(shield.Encrypt([]byte(group_code), key_code))
 	code := shield.NewKey(group_code)
 	hcode := strings.Split(code, "--")
-	encryptedUID := shield.Encrypt([]byte(v.UID), v.IDToken)
+	encryptedUID := shield.Encrypt([]byte(t.UID), t.IDToken)
 	encodedUID := shield.EncodeBase64(encryptedUID)
 
 	dev_url := "http://localhost:3000"

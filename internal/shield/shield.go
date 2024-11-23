@@ -9,6 +9,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"fast/config"
 	"io"
 	math "math/rand"
 	"os"
@@ -169,4 +170,10 @@ func RandIdx(n int) int {
 	src := math.NewSource(time.Now().UnixNano())
 	math.New(src)
 	return math.Intn(n)
+}
+
+func CreateActivationKey(key_code string) string {
+	enc := Encrypt([]byte(key_code), config.LoadConfig().ApiKey)
+	eb64 := EncodeBase64(enc)
+	return eb64
 }

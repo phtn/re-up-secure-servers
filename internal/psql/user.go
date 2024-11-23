@@ -54,15 +54,16 @@ func NewAccount(name string, email string, api_key string, uid string) string {
 	return account.UID
 }
 
-func CheckIfUserExists(uid string) bool {
+func CheckIfUserExists(uid string) (bool, *ent.User) {
 	user, err := pq.User.Query().Where(user.UID(uid)).First(ctx)
 	L.Fail("get-user", "by-uid", err)
 
 	exists := false
 	if user != nil {
 		exists = true
+		return exists, user
 	}
-	return exists
+	return exists, nil
 }
 
 func GetUserByUid(uid string) *ent.User {

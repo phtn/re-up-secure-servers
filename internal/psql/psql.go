@@ -42,7 +42,7 @@ func CheckAPIKey(api_key string) (bool, error) {
 		account.IsActive(true)).First(ctx)
 
 	L.Fail("accounts", "query-row", err)
-	L.Good("accounts", "active", account.IsActive, err)
+	L.Good("psql", "account-active", account.IsActive, err)
 	return account.IsActive, nil
 }
 

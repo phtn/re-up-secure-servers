@@ -34,6 +34,7 @@ const (
 	VerifyIdTokenPath   = "/verify-id-token"
 	VerifyAuthKeyPath   = "/verify-auth-key"
 	VerifyAgentCodePath = "/verify-agent-code"
+	ActivateUserPath    = "/activate-user"
 	// CLAIMS
 	ClaimsPath       = Claims
 	CustomClaimsPath = "/create-custom-claims"
@@ -84,7 +85,7 @@ func VerifyIdToken(c *fiber.Ctx) error {
 	result := service.VerifyIdToken(c.Context(), out)
 
 	data := utils.JsonData{Data: result}
-	return utils.FiberCookie(c, result.Cookie, utils.OK, nil, data)
+	return utils.FiberResponse(c, utils.OK, nil, data)
 }
 
 func GetUserInfo(c *fiber.Ctx) error {
@@ -127,6 +128,28 @@ func CreateAgentCode(c *fiber.Ctx) error {
 	result := service.NewAgentCode(v)
 	data := utils.JsonData{Data: result}
 	return utils.FiberResponse(c, utils.OK, nil, data)
+}
+
+func ActivateUser(c *fiber.Ctx) error {
+	var v models.UserActivation
+	if err := c.BodyParser(&v); err != nil {
+		return utils.FiberResponse(c, utils.BadRequest, err, utils.JsonData{Data: "Bad Request", Error: err, Message: "body-params-invalid"})
+	}
+	result, err := service.GetUserRecordByUID(context.Background(), v.UID)
+	L.Fail("activate-user", "get-user", err)
+	if err != nil {
+		return utils.FiberResponse(c, utils.Unauthorized, err, utils.JsonData{Data: "Blocked"})
+	}
+	// data := utils.JsonData{Data: result}
+	if result.Verified {
+
+		if val, ok := service.UnlockWithKey(v.HCode); ok {
+			data := utils.JsonData{Data: &val}
+			return utils.FiberResponse(c, utils.OK, nil, data)
+		}
+
+	}
+	return utils.FiberResponse(c, utils.Unauthorized, err, utils.JsonData{Data: "Invalid activation key"})
 }
 
 func VerifyAgentCode(c *fiber.Ctx) error {

@@ -49,6 +49,7 @@ func main() {
 	authGroup.Post(api.VerifyIdTokenPath, api.VerifyIdToken)
 	authGroup.Post(api.GetUserPath, api.GetUserInfo)
 	authGroup.Post(api.GetClaimsPath, api.GetClaims)
+	authGroup.Post(api.ActivateUserPath, api.ActivateUser)
 
 	// WITH CLAIMS
 	claimsGroup := server.Group(api.ClaimsPath, withClaims...)
@@ -74,7 +75,7 @@ func main() {
 	// 	"manager": "true",
 	// }
 	// service.AddCustomClaim("idToken", "uid", customClaims)
-
+	//
 	// END TEST //
 
 	// SERVER START
