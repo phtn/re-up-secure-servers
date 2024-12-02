@@ -24,37 +24,41 @@ const (
 )
 
 var (
-	fire = config.LoadConfig().Fire.Auth
+	fire = config.LoadConfig().Fire.AuthClient
 	L    = utils.NewConsole()
+	r    = utils.Ice(" 𝐒 ", 0)
 )
 
-func eqc(k string, verified bool, t *auth.Token, is_active bool, group string) models.VResult {
+func eqc(k string, verified bool, t *auth.Token, is_active bool, group string) (*models.VResult, error) {
 	if !verified {
-		return models.VResult{
-			Verified: verified,
-		}
+		return &models.VResult{
+			IsActive: false,
+		}, nil
 	}
-	return models.VResult{
-		Key:       k,
-		Verified:  verified,
+	return &models.VResult{
+		IDToken:   "",
 		Expiry:    int16(t.Expires),
+		UID:       t.UID,
 		IsActive:  is_active,
 		GroupCode: group,
-	}
+	}, nil
 }
 
-func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
-	var r, f = "v-idToken", "service: VerifyIdToken"
-
-	L.Info(out.IDToken[:8], out.Email, out.UID)
+func VerifyIdToken(ctx context.Context, out models.VerifyToken) (*models.VResult, error) {
 
 	t, err := fire.VerifyIDToken(ctx, out.IDToken)
+	L.Fail(r, "verification", err)
+
+	if strings.Contains(err.Error(), "expired") {
+		L.Warn(r, "Token Expired", err)
+		return nil, err
+	}
+
 	is_expired := expiryCheck(err)
-	L.Fail(r, f, "is_expired", is_expired, err)
 
 	if is_expired {
-		token, err := fire.VerifyIDTokenAndCheckRevoked(ctx, out.IDToken)
-		L.Fail("refresh-token", "service: VerifyIdToken", err)
+		token, err := fire.VerifyIDTokenAndCheckRevoked(ctx, out.Refresh)
+		L.Fail(r, "refresh-token", err)
 
 		if token.UID == t.UID {
 			out = models.VerifyToken{IDToken: out.Refresh}
@@ -65,42 +69,41 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) models.VResult {
 	// L.Fail(r, f, "session-cookie", err)
 
 	verified := t.UID == out.UID
-	L.Info("verify", "id_token", verified)
+	L.Info(r, "verify id-token", verified)
 
 	exists, user := psql.CheckIfUserExists(t.UID)
 	is_active := true
 
 	if verified && !exists {
-		phone_number := mock_phone()
+		phone_number := MockPhone()
 		if out.GroupCode == "" {
-			neo_user := psql.NewUser("Neo", out.Email, phone_number, out.UID, "NEO")
-			L.Info("neo-user-insert", "service: VerifyIdToken", "uid", neo_user)
+			neo_user := psql.NewUser(out.Email, out.Email, phone_number, out.UID, "NEO")
+			L.Info(r, "neo-user insert", neo_user)
 			return eqc("neo", verified, t, is_active, "NEO")
 		}
 		new_user := psql.NewUser("BrightOne", out.Email, phone_number, out.UID, out.GroupCode)
-		L.Info("new-user", "sign-up", new_user)
+		L.Info(r, "sign-up", new_user)
 
 		if new_user != "" {
 			claim := CustomClaims{
-				"agent": true,
+				"agent": "true",
 			}
-			token, err := AddCustomClaim(out.IDToken, out.UID, claim)
-			L.Fail("add-claim", "agent", err)
-			L.Good("add-claim", "agent", "success", err)
-			return eqc(token.UID, verified, token, is_active, "NEO")
+
+			err := fire.SetCustomUserClaims(ctx, t.UID, claim)
+			L.Fail(r, "add-claim agent", err)
+			return eqc(t.UID, verified, t, is_active, "NEO")
 		}
 	}
 	return eqc(t.UID, verified, t, is_active, user.GroupCode)
 }
 
 func GetUserRecord(ctx context.Context, v *models.VerifyToken) *models.Verified {
-	var r, f = "id-token", "verified"
 
 	user, err := fire.GetUser(ctx, v.UID)
-	L.Fail(r, f, err)
+	L.Fail(r, "get-user-record", err)
 
 	verified := user.UID == v.UID
-	L.Info(r, f, verified)
+	L.Info(r, user.UID, verified)
 
 	return &models.Verified{
 		Verified:   verified,
@@ -108,63 +111,58 @@ func GetUserRecord(ctx context.Context, v *models.VerifyToken) *models.Verified 
 	}
 }
 
-func GetUserRecordByUID(ctx context.Context, uid string) (*models.Verified, error) {
-	var r, f = "get-user", "by-id"
+func GetUserRecordByUID(ctx context.Context, uid string) (models.Verified, error) {
 
 	user_record, err := fire.GetUser(ctx, uid)
-	L.FailR(r, f, err)
+	L.Fail(r, "get-user by-id", err)
 
 	verified := user_record.UID == uid
-	L.Info(r, f, verified)
+	L.Info(r, user_record.UID, verified)
 
-	return &models.Verified{
+	response := models.Verified{
 		Verified:   verified,
 		UserRecord: user_record,
-	}, nil
+	}
+
+	return response, nil
 }
 
-func VerifyAuthKey(ctx context.Context, v models.VerifyWithAuthKey) models.VResult {
-	var r, f = POST, "authky"
+func VerifyAuthKey(ctx context.Context, v models.VerifyWithAuthKey) (*models.VResult, error) {
 
 	k := v.AuthKey
 	token, err := rdb.RetrieveToken(k)
-	L.Fail(r, f, err)
+	L.Fail(r, "auth-key", err)
 
 	verified := false
 
 	if token == nil {
 		t, err := fire.VerifyIDToken(ctx, v.IDToken)
-		L.Fail(r, f, err)
-		L.Good(r, f, "verified", err)
+		L.Fail(r, "verificaton", err)
 
 		verified = t.UID == v.UID
 		return eqc(k, verified, t, false, "")
 	}
 
 	verified = token.UID == v.UID
-	L.Good("verify", "id_token", verified)
+	L.Good(r, token.UID, verified)
 
 	return eqc(k, verified, token, false, "")
 }
 
 func VerifyAdmin(ctx context.Context, v *UserCredentials) bool {
-	var r, f = "verify", "admin"
-
-	// client, err := fire.Auth(context.Background())
-	// L.Fail(r, f, err)
 
 	if v.IDToken == "" {
 		return false
 	}
 	t, err := fire.VerifyIDToken(ctx, v.IDToken)
-	L.Fail(r, f, err)
+	L.Fail(r, "admin", err)
 
 	verified := t.UID == v.UID
 	with_claims := false
 	claims := t.Claims
 	if custom_claims, ok := claims["manager"]; ok {
 		if custom_claims.(bool) {
-			L.Good("claims", "manager", "ok")
+			L.Good(r, "claims-manager", "ok")
 			return verified && ok
 		}
 		with_claims = ok
@@ -172,38 +170,37 @@ func VerifyAdmin(ctx context.Context, v *UserCredentials) bool {
 	}
 	if admin_claims, ok := claims["admin"]; ok {
 		if admin_claims.(bool) {
-			L.Good("claims", "admin", "ok")
+			L.Good(r, "admin", "ok")
 			return verified && ok
 		}
 		with_claims = ok
 		return ok
 	}
 
-	L.Warn(r, f, verified && with_claims)
 	return verified && with_claims
 }
 
 func GetUserInfo(ctx context.Context, uid string) (*auth.UserRecord, error) {
 	user, err := fire.GetUser(ctx, uid)
-	L.FailR("get-user", "service", "firebase", err)
+	L.Fail(r, "get-user", "info", err)
 	timestamp := user.TokensValidAfterMillis / 1000
-	L.Info("token-validity", "timestamp", timestamp, "seconds")
+	L.Info(r, "validity timestamp", timestamp, "seconds")
 	return user, nil
 }
 
-func TokenVerification(ctx context.Context, v models.UserRefresh) (*models.TokenResponse, error) {
+func TokenVerification(ctx context.Context, v rdb.UserTokens) (*models.TokenResponse, error) {
 	t, err := fire.VerifyIDToken(ctx, v.IDToken)
-	L.Fail("fire.VerifyIDToken", "service: TokenVerification", err)
+	L.Fail(r, "service token-verification", err)
 	is_expired := expiryCheck(err)
 
 	var response *models.TokenResponse
 
 	if is_expired {
 		token, err := fire.VerifyIDTokenAndCheckRevoked(ctx, v.Refresh)
-		L.Fail("refresh-token", "service: TokenVerification", v.Refresh, err)
+		L.Fail(r, "refresh-token", v.Refresh, err)
 
 		if err != nil {
-			L.Fail("checked-revoked", v.Refresh, err)
+			L.Fail(r, "checked-revoked", v.Refresh, err)
 			return nil, err
 		}
 
@@ -221,19 +218,12 @@ func TokenVerification(ctx context.Context, v models.UserRefresh) (*models.Token
 	return response, nil
 }
 
-func UnlockWithKey(key_code string) (*models.ActivationResponse, bool) {
-	key := shield.CreateActivationKey(key_code)
-	rget := rdb.RetrieveVal(key)
+func UnlockWithKey(key_code string) *models.ActivationResponse {
+	key := shield.EncodeActivationKey(key_code)
+	a := rdb.GetActivation(key)
 
-	if !rget.Exists {
-		return nil, false
-	}
-
-	response, err := utils.DStruct[*models.ActivationResponse](rget.Value)
-	L.FailR("unlock-with-key", "rdb-value-dstruct", err)
-
-	return response, true
-
+	L.Good(r, "unlock-with-key", r)
+	return a
 }
 
 func expiryCheck(err error) bool {
@@ -257,37 +247,31 @@ func expiryCheck(err error) bool {
 // }
 
 func NewToken(uid models.Uid, ctx context.Context, fire *firebase.App) string {
-	var r, f = "new token", "NewToken"
 
 	client, err := fire.Auth(context.Background())
-	L.Fail(r, f, err)
+	L.Fail(r, "new-token", err)
 
 	token, err := client.CustomToken(context.Background(), uid.UID)
-	L.Fail(r, f, err)
+	L.Fail(r, "custom-token", err)
 
 	if len(token) >= 8 {
-		L.Good(r, f, token[:16])
+		L.Good(r, "good token", token[:16])
 	}
 	return token
 }
 
 func GetUser(ctx context.Context, uid models.Uid) *auth.UserRecord {
-	var f, r = "getUser", POST
-
-	// client, err := fire.Auth(context.Background())
-	// L.Fail(r, f, err)
 
 	usr, err := fire.GetUser(ctx, uid.UID)
-	L.Fail(r, f, err)
+	L.Fail(r, "get-user", err)
 
 	if usr != nil {
-		L.Good(POST, f, uid.UID[:8])
+		L.Good(r, "Good", uid.UID[:8])
 	}
 	return usr
 }
 
 func CreateUser(ctx context.Context, client *auth.Client) *auth.UserRecord {
-	var f = "createUser"
 
 	params := (&auth.UserToCreate{}).
 		Email("user@example.com").
@@ -299,13 +283,11 @@ func CreateUser(ctx context.Context, client *auth.Client) *auth.UserRecord {
 		Disabled(false)
 
 	usr, err := client.CreateUser(ctx, params)
-	L.Fail(POST, f, err)
-
-	L.Good(POST, f, usr)
+	L.Fail(r, "create-user", err)
 	return usr
 }
 
-func mock_phone() string {
+func MockPhone() string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano())) // Seed the random number generator
 	random := 100000 + r.Intn(900000)
 

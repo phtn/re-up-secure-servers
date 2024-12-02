@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/goccy/go-json"
+
 	dialect "entgo.io/ent/dialect"
 	esql "entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"
@@ -19,10 +21,12 @@ import (
 
 	// _ "github.com/tursodatabase/libsql-client-go/libsql"
 	"google.golang.org/api/option"
+
+	"go.uber.org/zap"
 )
 
 type Firebase struct {
-	Auth *auth.Client
+	AuthClient *auth.Client
 }
 
 type Config struct {
@@ -30,6 +34,7 @@ type Config struct {
 	Fire          *Firebase
 	Rdbs          *redis.Client
 	Pq            *ent.Client
+	Zap           *zap.Logger
 	ApiKey        string
 	AllowedOrigin string
 	JwtSecret     string
@@ -39,6 +44,7 @@ var (
 	fire *Firebase
 	rdbs *redis.Client
 	pq   *ent.Client
+	z    *zap.Logger
 	addr string
 	akey string
 	orig string
@@ -65,7 +71,7 @@ func init() {
 
 func LoadConfig() *Config {
 
-	return &Config{Addr: addr, Fire: fire, Rdbs: rdbs, ApiKey: akey, AllowedOrigin: orig, JwtSecret: jwts, Pq: pq}
+	return &Config{Addr: addr, Fire: fire, Rdbs: rdbs, ApiKey: akey, AllowedOrigin: orig, JwtSecret: jwts, Pq: pq, Zap: z}
 }
 
 func initRedis() *redis.Client {
@@ -99,10 +105,10 @@ func initFirebase() *Firebase {
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	L.Fail("init", "firebase-new-app", err)
 
-	auth, err := app.Auth(context.Background())
+	client, err := app.Auth(context.Background())
 	L.Fail("init", "firebase-auth", err)
 
-	return &Firebase{Auth: auth}
+	return &Firebase{AuthClient: client}
 }
 
 // func initialiazeDB() *sql.DB {
@@ -123,4 +129,29 @@ func initPostgres() *ent.Client {
 	client := ent.NewClient(ent.Driver(esql.OpenDB(driver, db)))
 
 	return client
+}
+
+func initZap() *zap.Logger {
+	raw_json := []byte(`{
+		  "level": "debug",
+		  "encoding": "json",
+		  "outputPaths": ["stdout", "/tmp/logs"],
+		  "errorOutputPaths": ["stderr"],
+		  "initialFields": {"foo": "bar"},
+		  "encoderConfig": {
+		    "messageKey": "message",
+		    "levelKey": "level",
+		    "levelEncoder": "lowercase"
+		  }
+		}`)
+
+	var cfg zap.Config
+	if err := json.Unmarshal(raw_json, &cfg); err != nil {
+		panic(err)
+	}
+	logger := zap.Must(cfg.Build())
+	defer logger.Sync()
+
+	return logger
+
 }

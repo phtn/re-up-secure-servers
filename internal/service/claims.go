@@ -29,10 +29,20 @@ var (
 
 func AddCustomClaim(idToken string, uid string, customClaims CustomClaims) (*auth.Token, error) {
 
-	err := fire.SetCustomUserClaims(ctx, uid, customClaims)
-	L.FailR("add-custom-claim", uid, customClaims, err)
+	context := context.Background()
 
-	token, err := fire.VerifyIDToken(ctx, idToken)
+	err := fire.SetCustomUserClaims(context, uid, customClaims)
+	if err != nil {
+		return nil, err
+	}
+
+	L.Info(idToken, uid, customClaims)
+
+	token, err := fire.VerifyIDToken(context, idToken)
+	if err != nil {
+		return nil, err
+	}
+
 	claims := token.Claims
 
 	for k, value := range customClaims {

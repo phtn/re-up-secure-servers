@@ -14,7 +14,7 @@ var (
 	pq  = config.LoadConfig().Pq
 	ctx = context.Background()
 	L   = utils.NewConsole()
-	r   = "postgres"
+	r   = utils.Sky(" 𝐏 ", 0)
 )
 
 func PsqlHealth() interface{} {
@@ -36,13 +36,16 @@ func PsqlHealth() interface{} {
 
 func CheckAPIKey(api_key string) (bool, error) {
 
-	account, err := pq.Account.
+	account, err := pq.
+		Account.
 		Query().Where(
 		account.APIKey(api_key),
 		account.IsActive(true)).First(ctx)
+	if err != nil {
+		return false, err
+	}
 
-	L.Fail("accounts", "query-row", err)
-	L.Good("psql", "account-active", account.IsActive, err)
+	L.Fail(r, "mother-account verified", err)
 	return account.IsActive, nil
 }
 

@@ -1,6 +1,8 @@
 package models
 
-import "firebase.google.com/go/v4/auth"
+import (
+	"firebase.google.com/go/v4/auth"
+)
 
 type Uid struct {
 	UID string `json:"uid"`
@@ -10,12 +12,6 @@ type UserAccess struct {
 	AccessToken string `json:"access_token"`
 	UID         string `json:"uid"`
 	Email       string `json:"email"`
-}
-
-type UserRefresh struct {
-	IDToken string `json:"id_token"`
-	Refresh string `json:"refresh"`
-	UID     string `json:"uid"`
 }
 
 type TokenResponse struct {
@@ -43,6 +39,10 @@ type VerifyToken struct {
 	GroupCode string `json:"group_code,omitempty"`
 	Refresh   string `json:"refresh,omitempty"`
 }
+type UserCredentials struct {
+	Email string `json:"email"`
+	UID   string `json:"uid"`
+}
 
 type GetUserInfo struct {
 	IDToken string `json:"id_token"`
@@ -62,8 +62,8 @@ type AuthKey struct {
 }
 
 type VResult struct {
-	Key       string `json:"key,omitempty"`
-	Verified  bool   `json:"verified"`
+	IDToken   string `json:"id_token,omitempty"`
+	UID       string `json:"uid,omitempty"`
 	Expiry    int16  `json:"expiry,omitempty"`
 	IsActive  bool   `json:"is_active,omitempty"`
 	GroupCode string `json:"group_code,omitempty"`
@@ -80,6 +80,12 @@ type UserCredential struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
+}
+
+type UserVerified struct {
+	UID      string                 `json:"uid,omitempty"`
+	Claims   map[string]interface{} `json:"claims,omitempty"`
+	Verified bool                   `json:"verified,omitempty"`
 }
 
 type Identity struct {

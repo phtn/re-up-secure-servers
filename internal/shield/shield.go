@@ -9,7 +9,6 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
-	"fast/config"
 	"io"
 	math "math/rand"
 	"os"
@@ -172,8 +171,11 @@ func RandIdx(n int) int {
 	return math.Intn(n)
 }
 
-func CreateActivationKey(key_code string) string {
-	enc := Encrypt([]byte(key_code), config.LoadConfig().ApiKey)
-	eb64 := EncodeBase64(enc)
-	return eb64
+func EncodeActivationKey(key_code string) string {
+	en := EncodeBase64([]byte(key_code))
+	return en
+}
+func DecodeActivationKey(key_code string) string {
+	de := DecodeBase64(key_code)
+	return string(de)
 }

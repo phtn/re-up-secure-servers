@@ -22,9 +22,9 @@ func CreateNewGroup(name string, email string, phone_number string, uid string, 
 		SetAddress("re-up-hq").
 		Save(ctx)
 
-	L.Fail("groups", "create", err)
+	L.Fail(r, "group-create", err)
 
-	L.Good("groups", "create", group.ID, err)
+	L.Good(r, "group-create", group.ID, err)
 	return group.UID
 }
 
@@ -32,7 +32,7 @@ func GetGroupCode(uid string) string {
 	group, err := pq.Group.
 		Query().Where(group.UID(uid + "--m")).First(ctx)
 	if err != nil {
-		L.Fail("groups", "get-code", err)
+		L.Fail(r, "group-get-code", err)
 		return ""
 	}
 	return group.GroupCode
@@ -42,7 +42,7 @@ func GetGroupId(group_code string) (uuid.UUID, error) {
 	group, err := pq.Group.
 		Query().Where(group.GroupCode(group_code)).First(ctx)
 	if err != nil {
-		L.Fail("groups", "get-group-id", group_code, err)
+		L.Fail(r, "get-group-id", group_code, err)
 		return group.ID, err
 	}
 	return group.ID, nil

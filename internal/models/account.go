@@ -2,12 +2,13 @@ package models
 
 import (
 	"context"
-	"encoding/json"
 	"fast/config"
 	"fast/internal/shield"
 	"fast/pkg/utils"
 	"fmt"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/golang-jwt/jwt/v5"
 )

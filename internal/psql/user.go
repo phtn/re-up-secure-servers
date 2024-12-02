@@ -1,6 +1,7 @@
 package psql
 
 import (
+	"context"
 	"fast/ent"
 	"fast/ent/user"
 	"fast/pkg/utils"
@@ -15,7 +16,7 @@ func mock_url() string {
 func NewUser(name string, email string, phone_number string, uid string, group_code string) string {
 
 	group_id, err := GetGroupId(group_code)
-	L.Fail("new-user", "get-group-id", group_id, err)
+	L.Fail(r, "new-user get-group-id", group_id, err)
 
 	photo_url := mock_url()
 
@@ -31,10 +32,23 @@ func NewUser(name string, email string, phone_number string, uid string, group_c
 		SetUID(uid).
 		Save(ctx)
 
-	L.Fail("users", "create", err)
+	L.Fail(r, "user-create", err)
 
-	L.Good("users", "create", user.ID, err)
+	L.Good(r, "user-create", user.ID, err)
 	return user.UID
+}
+
+func UpdateUserGroupCode(uid string, group_code string) (*ent.User, error) {
+	ctx := context.Background()
+	user, err := pq.User.Query().Where(user.UID(uid)).First(ctx)
+	L.FailR(r, "update user query-by-uid", err)
+	L.Good(r, "update query-by-uid", err)
+
+	update, err := user.Update().SetGroupCode(group_code).Save(ctx)
+	L.FailR(r, "update set-group-code", err)
+	L.Good(r, "update set-group-code", update.GroupCode)
+
+	return update, nil
 }
 
 func NewAccount(name string, email string, api_key string, uid string) string {
@@ -49,14 +63,14 @@ func NewAccount(name string, email string, api_key string, uid string) string {
 		SetUID(uid).
 		Save(ctx)
 
-	L.Fail("accounts", "create", err)
-	L.Good("accounts", "create", account.UID, err)
+	L.Fail(r, "accounts-create", err)
+	L.Good(r, "accounts-create", account.UID, err)
 	return account.UID
 }
 
 func CheckIfUserExists(uid string) (bool, *ent.User) {
 	user, err := pq.User.Query().Where(user.UID(uid)).First(ctx)
-	L.Fail("get-user", "by-uid", err)
+	L.Fail(r, "check-user by-uid", err)
 
 	exists := false
 	if user != nil {
@@ -68,14 +82,14 @@ func CheckIfUserExists(uid string) (bool, *ent.User) {
 
 func GetUserByUid(uid string) *ent.User {
 	user, err := pq.User.Query().Where(user.UID(uid)).First(ctx)
-	L.Fail("get-user", "by-uid", err)
+	L.Fail(r, "get-user by-uid", err)
 	return user
 }
 
 func GetAllAccounts() {
 	accounts, err := pq.Account.Query().All(ctx)
-	L.Fail("all-accts", "query", err)
-	L.Good("all-accts", "query", accounts, err)
+	L.Fail(r, "get-all query", err)
+	L.Good(r, "get-all query", accounts, err)
 	defer pq.Close()
 }
 

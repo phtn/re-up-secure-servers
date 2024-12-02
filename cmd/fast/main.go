@@ -46,7 +46,9 @@ func main() {
 
 	// AUTHENTICATED
 	authGroup := server.Group(api.AuthPath, withAuth...)
-	authGroup.Post(api.VerifyIdTokenPath, api.VerifyIdToken)
+	authGroup.Post(api.VerifyIdTokenPath, api.VerifyUser)
+	authGroup.Post(api.VerifyUserPath, api.VerifyUser)
+	authGroup.Post(api.VerifyOnSigninPath, api.VerifyUser)
 	authGroup.Post(api.GetUserPath, api.GetUserInfo)
 	authGroup.Post(api.GetClaimsPath, api.GetClaims)
 	authGroup.Post(api.ActivateUserPath, api.ActivateUser)
@@ -61,6 +63,10 @@ func main() {
 	adminGroup.Post(api.AdminPath, withAdmin...)
 	adminGroup.Post(api.AccountTokenPath, api.CreateAccountToken)
 
+	// DEV
+	debugGroup := server.Group(api.DevPath)
+	debugGroup.Post(api.DebugRedisPath, api.DebugRedisStore)
+
 	utils.MkOne()
 
 	// DB HEALTH //
@@ -74,8 +80,8 @@ func main() {
 	// 	"agent":   "true",
 	// 	"manager": "true",
 	// }
-	// service.AddCustomClaim("idToken", "uid", customClaims)
 	//
+
 	// END TEST //
 
 	// SERVER START

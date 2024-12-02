@@ -76,3 +76,103 @@ func MkOne() {
 	}
 	drawBorder(5, 1)
 }
+
+func StripANSI(input string) string {
+	ansiRegex := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	return ansiRegex.ReplaceAllString(input, "")
+}
+func ExpandTabs(input string, tabWidth int) string {
+	return strings.ReplaceAll(input, "\t", strings.Repeat(" ", tabWidth))
+}
+func CountNewLines(input string) int {
+	return strings.Count(input, "\n")
+}
+
+func dim(s string) string {
+	return Gray(s, 0)
+}
+
+var (
+	tr = dim("╮")
+	tl = dim("╭")
+	br = dim("╯")
+	bl = dim("╰")
+	hl = dim("─")
+	vl = dim("│")
+	sp = dim(" ")
+)
+
+func calcX(input []string) (map[int]interface{}, string) {
+
+	var c int
+	var widths []int
+	var contents []string
+
+	for _, v := range input {
+		contents = append(contents, v)
+	}
+
+	for _, u := range input {
+		cleaned := StripANSI(u)
+		expanded := ExpandTabs(cleaned, 5)
+		widths = append(widths, len(expanded))
+		c += utf8.RuneCountInString(expanded)
+
+	}
+
+	mint := make(map[int]interface{})
+	mint[8] = contents[0]
+	mint[4] = contents[1]
+	mint[widths[2]] = contents[2] + sp
+
+	// for i, j := range widths {
+	// 	mint[j] = contents[i]
+	// }
+
+	pad := 1
+	w := c + (4 * pad)
+	x_border := repeat(hl, w)
+	return mint, x_border
+}
+
+func OpenRect(inputs []string) string {
+
+	m, x := calcX(inputs)
+
+	// var order []string
+	// for i, j := range m {
+	// 	if i == 8 {
+	// 		order[0] = fmt.Sprintf("%s", j)
+	// 	}
+	// 	if i == 4 {
+	// 		order[1] = fmt.Sprintf("%s", j)
+	// 	}
+	// 	order[2] = fmt.Sprintf("%s", j)
+	// }
+
+	content := vl
+	for _, v := range m {
+		content += fmt.Sprintf(" %s", v)
+	}
+
+	top_b := tl + x + tr
+	bot_b := bl + x + br
+
+	var result string
+	result += top_b + "\n"
+	result += content + vl + "\n"
+	result += bot_b
+	return result
+}
+
+func RectII() {
+	slice := []string{"there she goes", "there she goes again."}
+	for i := range slice {
+		fmt.Println(i)
+	}
+}
+
+// repeat creates a string by repeating a character n times
+func repeat(char string, count int) string {
+	return fmt.Sprintf("%s", strings.Repeat(string([]rune(char)), count))
+}

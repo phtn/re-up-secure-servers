@@ -13,8 +13,7 @@ func NewAgentCode(t models.VerifyToken) *models.HCodeResponse {
 	group_code := psql.GetGroupCode(t.UID)
 	key_code, err := utils.GenerateCode()
 
-	rdb_key := shield.CreateActivationKey(key_code)
-
+	rdb_key := shield.EncodeActivationKey(key_code)
 	v := models.ActivationResponse{GroupCode: group_code}
 	rstore := rdb.StoreVal(rdb_key, 48, v)
 	L.Info("activation-key", "stored", rstore.TTL)

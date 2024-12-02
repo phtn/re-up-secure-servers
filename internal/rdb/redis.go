@@ -2,35 +2,29 @@ package rdb
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"time"
 
+	"github.com/goccy/go-json"
+	"github.com/redis/go-redis/v9"
+
 	"fast/config"
+	"fast/internal/models"
 	"fast/pkg/utils"
 
 	"firebase.google.com/go/v4/auth"
 )
 
-type RetrieveInfo struct {
-	Exists bool          `json:"exists"`
-	Value  interface{}   `json:"value,omitempty"`
-	TTL    time.Duration `json:"ttl,omitempty"`
-}
-type StoreInfo struct {
-	StoreKey string        `json:"store_key,omitempty"`
-	TTL      time.Duration `json:"ttl,omitempty"`
-}
-
 var (
-	r   = "redis"
-	rdb = config.LoadConfig().Rdbs
+	r   = utils.Ice(" 𝐑 ", 0)
+	Rdb = config.LoadConfig().Rdbs
 	L   = utils.NewConsole()
 )
 
 func RedisHealth() interface{} {
 	start := time.Now()
 	ctx := context.Background()
-	ping := rdb.Ping(ctx)
+	ping := Rdb.Ping(ctx)
 	L.Good(r, "ping", ping, nil)
 	elapsed := time.Now().Sub(start) / time.Millisecond
 	response := map[string]interface{}{
@@ -41,29 +35,83 @@ func RedisHealth() interface{} {
 	return response
 }
 
+func StoreUserTokens(ctx context.Context, u *Tokens, expiresIn *time.Duration) error {
+	key := "usr::" + u.UID + "::token"
+	expiry := time.Now().Add(time.Duration(expiresIn.Seconds()))
+	value := map[string]interface{}{
+		"id_token":      u.IDToken,
+		"refresh_token": u.Refresh,
+		"uid":           u.UID,
+		"expiry":        expiry,
+	}
+	err := Rdb.Set(ctx, key, value, 0).Err()
+	L.Fail(r, "store-refresh", err)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetUserTokens(uid string) (*Tokens, error) {
+	ctx := context.Background()
+	key := "usr::" + uid + "::token"
+	t, err := Rdb.Get(ctx, key).Result()
+
+	if err != nil {
+
+		if errors.Is(err, redis.Nil) {
+			L.Warn(r, "get-tokens key-not-found", err)
+			return nil, nil
+		} else {
+			L.Fail(r, "redis-error", err)
+			return nil, err
+		}
+	}
+
+	var v *Tokens
+	err = json.Unmarshal([]byte(t), &v)
+	L.Fail(r, "store-unmarshal", err)
+	if err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 func StoreToken(k string, f string, t *auth.Token) {
 
 	value, err := json.Marshal(&t)
-	L.Fail("json", "storeToken", err)
+	L.Fail(r, "storeToken", err)
 
 	ctx := context.Background()
-	err = rdb.Set(ctx, k, value, 1*time.Hour).Err()
-	L.Fail("set", "storeToken", err)
-	L.Good("rdb", "storeToken", k, err)
+	err = Rdb.Set(ctx, k, value, 6*time.Hour).Err()
+	L.Fail(r, "set store-token", err)
+	L.Good(r, "set store-token", k, err)
+}
+
+func GetActivation(k string) *models.ActivationResponse {
+	ctx := context.Background()
+
+	v, err := Rdb.Get(ctx, k).Result()
+	L.Fail(r, "result", err)
+	var act *models.ActivationResponse
+	err = json.Unmarshal([]byte(v), &act)
+	L.Fail(r, "unmarshal", err)
+
+	return act
 }
 
 func RetrieveToken(k string) (*auth.Token, error) {
 	ctx := context.Background()
 
-	val, err := rdb.Get(ctx, k).Result()
-	L.Fail("get", "retrieveToken", err)
+	val, err := Rdb.Get(ctx, k).Result()
+	L.Fail(r, "retrieve-token", err)
 
 	var token *auth.Token
 
 	err = json.Unmarshal([]byte(val), &token)
-	L.Fail("json", "retrieveToken", err)
+	L.Fail(r, "retrieveToken", err)
 
-	L.Good("get", "retrieveToken", "done", err)
+	L.Good(r, "retrievetoken", "done", err)
 	return token, err
 }
 
@@ -73,7 +121,7 @@ func StoreVal(key string, h time.Duration, v interface{}) *StoreInfo {
 	value, err := json.Marshal(v)
 	L.Fail(r, "json-marshal", err)
 
-	pipe := rdb.Pipeline()
+	pipe := Rdb.Pipeline()
 	set_cmd := pipe.Set(ctx, key, value, h*time.Hour)
 	ttl_cmd := pipe.TTL(ctx, key)
 
@@ -93,16 +141,16 @@ func StoreVal(key string, h time.Duration, v interface{}) *StoreInfo {
 func RetrieveVal(key string) *RetrieveInfo {
 	ctx := context.Background()
 
-	pipe := rdb.Pipeline()
+	pipe := Rdb.Pipeline()
 	get_cmd := pipe.Get(ctx, key)
 	ttl_cmd := pipe.TTL(ctx, key)
 
 	_, err := pipe.Exec(ctx)
-	L.Fail(r, "pipe-exec", "retrieve-value", err)
+	L.Fail(r, "pipe-exec", "retrieve-value", key, err)
 
 	val, err := get_cmd.Result()
 	if val == "" {
-		L.Fail(r, "get-cmd", "retrieve-val", err)
+		L.Fail(r, "get-cmd", "retrieve-val", key, err)
 		return &RetrieveInfo{Exists: false}
 	}
 
@@ -126,25 +174,26 @@ func DevSet(key string, v auth.Token) string {
 	L.Fail(r, "json-marshal", err)
 
 	ctx := context.Background()
-	err = rdb.Set(ctx, key, value, 1*time.Hour).Err()
+	err = Rdb.Set(ctx, key, value, 1*time.Hour).Err()
 	L.Fail(r, "rdb-set", err)
 
 	L.Good(r, "rdb-set", key, err)
 	return key
 }
 
-func DevGet(key string) interface{} {
+func DevGet(key string) (interface{}, bool) {
 	ctx := context.Background()
 
-	data, err := rdb.Get(ctx, key).Result()
-	L.Fail("dev", "get", err)
+	data, err := Rdb.Get(ctx, key).Result()
+	errIsNil := isNil(err)
+	L.Fail(r, "get", err)
 
 	var v auth.Token
 	err = json.Unmarshal([]byte(data), &v)
-	L.Fail("json", "retrieveToken", err)
+	L.Fail(r, "get token", "key:", key, err)
 
-	L.Good("dev", "rdb-get", key, err)
-	return v
+	L.Good(r, "rdb-get", key, err)
+	return v, errIsNil
 }
 
 func HashSet() interface{} {
@@ -161,16 +210,43 @@ func HashSet() interface{} {
 	}
 
 	for k, v := range descartes {
-		err := rdb.HSet(ctx, f, k, v).Err()
-		L.Fail("rdb", f, err)
+		err := Rdb.HSet(ctx, f, k, v).Err()
+		L.Fail(r, f, err)
 	}
 
-	val, err := rdb.Get(ctx, f).Result()
-	L.Fail("rdb", f, err)
-	L.Good("rdb", f, val, err)
+	val, err := Rdb.Get(ctx, f).Result()
+	L.Fail(r, f, err)
+	L.Good(r, f, val, err)
 
 	elapsed := time.Now().Sub(start)
-	L.Good("rdb", f, elapsed, err)
+	L.Good(r, f, elapsed, err)
 
 	return elapsed
+}
+
+func Int_Token_Set(key string, v interface{}) interface{} {
+	rte := utils.Fuchsia("𝕊𝕋𝔸𝔾𝔼𝕟", 0)
+
+	value, err := json.Marshal(v)
+	L.Fail(rte, "-json-marshal", err)
+
+	ctx := context.Background()
+	err = Rdb.Set(ctx, key, value, 1*time.Minute).Err()
+	L.Fail(rte, "debug-rdb-set", err)
+
+	L.Good(rte, "rdb token set", key, err)
+	return key
+}
+
+func DebugSet(key string, v interface{}) interface{} {
+
+	value, err := json.Marshal(v)
+	L.Fail(dev, "debug-json-marshal", err)
+
+	ctx := context.Background()
+	err = Rdb.Set(ctx, key, value, 1*time.Minute).Err()
+	L.Fail(dev, "debug-rdb-set", err)
+
+	L.Good(dev, "debug-rdb-set", key, err)
+	return key
 }

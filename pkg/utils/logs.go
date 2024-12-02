@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/muesli/termenv"
 )
 
@@ -28,18 +27,7 @@ type LogArgs struct {
 var (
 	L      = NewConsole()
 	prefix = Gray(log.Prefix(), 0)
-	// FIBER STATUS
-	Accepted     = fiber.StatusAccepted
-	OK           = fiber.StatusOK
-	Unauthorized = fiber.StatusUnauthorized
-	BadRequest   = fiber.StatusBadRequest
 )
-
-type JsonData struct {
-	Data    interface{} `json:"data,omitempty"`
-	Error   interface{} `json:"error,omitempty"`
-	Message string      `json:"message,omitempty"`
-}
 
 var (
 	format = "%s %s %s %v"
@@ -69,7 +57,7 @@ func (l *Console) colorize(s string, c termenv.Color) string {
 
 func (l *Console) formatTime() string {
 	now := time.Now()
-	return l.colorize(now.Format("2006-01-02 03:04:05"), light)
+	return l.colorize(now.Format("03:04"), light)
 }
 
 func (l *Console) formatLevel(level string) string {
@@ -77,7 +65,7 @@ func (l *Console) formatLevel(level string) string {
 	case "info":
 		return l.colorize(indicator, info)
 	case "debug":
-		return l.colorize(indicator, debug)
+		return l.colorize(d_indicator, sky)
 	case "good":
 		return l.colorize(indicator, good)
 	case "fail":
@@ -96,7 +84,8 @@ func (l *Console) formatLevel(level string) string {
 func (l *Console) log(level string, r string, f string, a ...interface{}) {
 	msg := fmt.Sprintf(format, r, f, div, a)
 
-	logEntry := fmt.Sprintf("%s %s %s\n", l.formatTime(), l.formatLevel(level), Grey(msg, 0))
+	input := []string{l.formatTime(), l.formatLevel(level), Ash(msg, 0)}
+	logEntry := fmt.Sprintf("%s\n", OpenRect(input))
 
 	if level == "fail" {
 		fmt.Fprintf(os.Stderr, logEntry)
@@ -125,6 +114,8 @@ func (l *Console) Fail(r string, f string, a ...interface{}) {
 		l.log("fail", r, f, a...)
 		return
 	}
+	l.log("info", r, f, "OK")
+	return
 }
 
 func (l *Console) FailR(r string, f string, a ...interface{}) (interface{}, error) {
@@ -132,7 +123,18 @@ func (l *Console) FailR(r string, f string, a ...interface{}) (interface{}, erro
 		l.log("fail", r, f, a...)
 		return nil, errors.New(a[len(a)-1].(string))
 	}
+	l.log("good", r, f, "OK")
 	return a[1:], nil
+}
+
+func FailRII[E any](r string, f string, a []E) ([]E, error) {
+	if a != nil {
+		e := fmt.Errorf("%v", a)
+		L.log("fail", r, f, e)
+		return nil, e
+	}
+	L.log("good", r, f, "OK")
+	return a, nil
 }
 
 func (l *Console) Warn(r string, f string, a ...interface{}) {
