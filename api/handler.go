@@ -91,6 +91,19 @@ func DatabaseHealth(c *fiber.Ctx) error {
 	return OkResponse(c, Health{data, ""}, nil)
 }
 
+func VerifyAgentCode(c *fiber.Ctx) error {
+	var p *models.HCodeParams
+	if err := c.BodyParser(&p); err != nil {
+		L.Fail(h, "verify-code body-parser", err)
+		return ErrResponse(c, ErrBadRequest, err)
+	}
+
+	L.Info(h, "check-params", p)
+	result := service.VerifyAgentCode(p)
+	L.Info(h, "verification-result", result.Verified)
+	return OkResponse(c, result, nil)
+}
+
 func VerifyUser(c *fiber.Ctx) error {
 
 	id_token := c.Locals("id_token").(string)
@@ -125,41 +138,40 @@ func VerifyUser(c *fiber.Ctx) error {
 	// return ErrResponse(c, ErrUnauthorized, err)
 	// }
 
-	// session, err := fire.VerifySessionCookieAndCheckRevoked(c.Context(), u.IDToken)
-	// if err != nil {
-	// 	return ErrResponse(c, ErrUnauthorized, err)
-	// }
+	session, err := fire.VerifyIDToken(c.Context(), id_token)
+	if err != nil {
+		return ErrResponse(c, ErrUnauthorized, err)
+	}
 	// if time.Until(store.Expiry) < 5*time.Minute {
 	// 		L.Warn(h, "expiry is less that 5 mins", time.Until(store.Expiry))
 	// 		cookieStr, err = fire.SessionCookie(c.Context(), id_token, expiresIn)
 	// 		ErrResponse(c, ErrUnauthorized, err)
 	// 	}
-	// cookie, err := fire.SessionCookie(c.Context(), id_token, expiresIn)
+	cookie, err := fire.SessionCookie(c.Context(), id_token, expiresIn)
 
-	// var details interface{}
-	// if session.UID == u.UID {
-	// 	claims := session.Claims
+	var details interface{}
+	if session.UID == auth_token.UID {
+		claims := session.Claims
 
-	// 	details = fiber.Map{
-	// 		"status": OK,
-	// 		"data": models.UserVerified{
-	// 			UID:      session.UID,
-	// 			Claims:   claims,
-	// 			Verified: true,
-	// 		},
-	// 	}
-	// }
+		details = fiber.Map{
+			"status": OK,
+			"data": models.UserVerified{
+				UID:      session.UID,
+				Claims:   claims,
+				Verified: true,
+			},
+		}
+	}
 
-	// L.Good(h, "key found", "OK")
-	// data := DataResponse{
-	// 	Status:  200,
-	// 	Message: "success",
-	// 	Code:    "VERIFICATION",
-	// 	Err:     nil,
-	// 	Data:    details,
-	// }
-	// return CookieHandler(c, cookie, &data)
-	return OkResponse(c, "", "")
+	L.Good(h, "key found", "OK")
+	data := DataResponse{
+		Status:  200,
+		Message: "success",
+		Code:    "VERIFICATION",
+		Err:     nil,
+		Data:    details,
+	}
+	return CookieHandler(c, cookie, &data)
 }
 
 ///////////////////////////////////////////////////
@@ -211,8 +223,7 @@ func CreateAgentCode(c *fiber.Ctx) error {
 		return ErrResponse(c, ErrBadRequest, err)
 	}
 	result := service.NewAgentCode(v)
-	data := Res{Data: result}
-	return OkResponse(c, data, nil)
+	return OkResponse(c, result, nil)
 }
 
 func ActivateUser(c *fiber.Ctx) error {
@@ -263,16 +274,6 @@ func ActivateUser(c *fiber.Ctx) error {
 		L.Warn(h, "claims-not-set", v.UID)
 	}
 	return ErrResponse(c, ErrUnauthorized, err)
-}
-
-func VerifyAgentCode(c *fiber.Ctx) error {
-	var p *models.HCodeParams
-	if err := c.BodyParser(&p); err != nil {
-		return ErrResponse(c, ErrBadRequest, err)
-	}
-	result := service.VerifyAgentCode(p)
-	data := Res{Data: result}
-	return OkResponse(c, data, nil)
 }
 
 func CreateAccountToken(c *fiber.Ctx) error {

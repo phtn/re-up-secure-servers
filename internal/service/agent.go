@@ -6,19 +6,19 @@ import (
 	"fast/internal/shield"
 )
 
-func VerifyAgentCode(p *models.HCodeParams) *models.HCodeVerification {
+func VerifyAgentCode(p *models.HCodeParams) models.HCodeVerification {
 
-	decrypt := shield.DecodeBase64(p.GrpCode)
-	grp := shield.Decrypt(decrypt, p.KeyCode)
-	L.Info("grp", "GrpCode", p.GrpCode, p.KeyCode)
-	L.Info("grp", "decrypted", string(decrypt))
+	decrypt := shield.DecodeBase64(p.Grp)
+	grp := shield.Decrypt(decrypt, p.Code)
+	L.Info(r, "hcode-grp-decrypt", string(grp))
 
-	v := rdb.RetrieveVal(p.Code + "--" + string(grp) + "--" + p.Nonce)
+	v := rdb.RetrieveVal(p.HKey + "--" + string(grp) + "--" + p.Nonce)
+	L.Info(r, "rdb-get-value-exists", v.Value, v.Exists)
 
-	if v.Exists {
-		return &models.HCodeVerification{Verified: true, Expiry: &v.TTL, Url: &v.Value, GroupCode: string(grp)}
+	if !v.Exists {
+		return models.HCodeVerification{Verified: false}
 	}
 
-	return &models.HCodeVerification{Verified: false}
+	return models.HCodeVerification{Verified: true, Expiry: &v.TTL, Url: &v.Value, GroupCode: string(grp)}
 
 }

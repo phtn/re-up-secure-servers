@@ -3,11 +3,11 @@ package models
 import "time"
 
 type HCodeParams struct {
-	KeyCode string `json:"key_code"`
-	Code    string `json:"code"`
-	GrpCode string `json:"grp"`
-	Nonce   string `json:"nonce"`
-	Sha     string `json:"sha"`
+	HKey  string `json:"hkey"`
+	Code  string `json:"code"`
+	Grp   string `json:"grp"`
+	Nonce string `json:"nonce"`
+	Sha   string `json:"sha"`
 }
 
 type HCodeVerification struct {

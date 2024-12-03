@@ -9,6 +9,7 @@ import (
 	"fast/pkg/utils"
 	"strings"
 
+	"firebase.google.com/go/v4/auth"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -49,21 +50,18 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		return ErrResponse(c, ErrUnauthorized, err)
 	}
 
-	var user_tokens interface{}
 	key := "usr::" + u.UID + "::token"
-	if store, ok := rdb.DevGet(key); ok {
+	if _, ok := rdb.Int_Token_Get(key); ok {
 		L.Warn(m, "key-not-found ", key)
 		new_store := rdb.Int_Token_Set(key, u)
 		L.Good(m, "new-key-stored", new_store)
-		user_tokens = store
 	}
-
-	L.Info(m, h, "store", user_tokens)
 
 	if refresh_token == "" {
 		refresh_token = u.Refresh
 	}
-	L.Info(m, h, "refresh-token check", refresh_token)
+	L.Info(m, h, "refresh-token check", refresh_token != "")
+	L.Info(m, h, "refresh-token check", u.Refresh != "")
 
 	idToken := ""
 	if auth_header == "" {
@@ -76,8 +74,22 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		}
 	}
 
-	t, err := fire.VerifyIDToken(c.Context(), idToken)
+	t, err := fire.VerifyIDToken(c.Context(), u.IDToken)
 	if err != nil {
+		if auth.IsIDTokenExpired(err) {
+			n, err := fire.VerifyIDTokenAndCheckRevoked(c.Context(), u.Refresh)
+			if err != nil {
+				L.Fail(m, "expired-get-token-with-refresh", err)
+				return ErrResponse(c, ErrUnauthorized, err)
+			}
+
+			c.Locals("id_token", n)
+			c.Locals("refresh_token", u.Refresh)
+			c.Locals("auth_token", n)
+
+			return c.Next()
+
+		}
 		return ErrResponse(c, ErrUnauthorized, err)
 	}
 
@@ -85,7 +97,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	c.Locals("refresh_token", refresh_token)
 	c.Locals("auth_token", t)
 
-	L.Info(m, "validated", t.UID, t.Claims)
+	L.Info(m, "validated", t.UID)
 
 	return c.Next()
 

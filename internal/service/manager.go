@@ -15,7 +15,7 @@ func NewAgentCode(t models.VerifyToken) *models.HCodeResponse {
 
 	rdb_key := shield.EncodeActivationKey(key_code)
 	v := models.ActivationResponse{GroupCode: group_code}
-	rstore := rdb.StoreVal(rdb_key, 48, v)
+	rstore := rdb.StoreVal(rdb_key, 5, v)
 	L.Info("activation-key", "stored", rstore.TTL)
 
 	L.Fail("agent_code", "agent-code", err)
@@ -27,9 +27,9 @@ func NewAgentCode(t models.VerifyToken) *models.HCodeResponse {
 	encodedUID := shield.EncodeBase64(encryptedUID)
 
 	dev_url := "http://localhost:3000"
-	endpoint := "/hcode?code="
+	endpoint := "/hcode?hkey="
 	url := dev_url + endpoint + hcode[0] + "&grp=" + encryptedGrpCode + "&nonce=" + hcode[2] + "&sha=" + encodedUID[:24]
-	store_info := rdb.StoreVal(code, 48, url)
+	store_info := rdb.StoreVal(code, 5, url)
 	L.Info("create  ", "agent-code", code, url, store_info.TTL, err)
 	response := models.HCodeResponse{Code: key_code, URL: url, Expiry: &store_info.TTL}
 	return &response

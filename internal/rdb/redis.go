@@ -122,7 +122,7 @@ func StoreVal(key string, h time.Duration, v interface{}) *StoreInfo {
 	L.Fail(r, "json-marshal", err)
 
 	pipe := Rdb.Pipeline()
-	set_cmd := pipe.Set(ctx, key, value, h*time.Hour)
+	set_cmd := pipe.Set(ctx, key, value, h*time.Minute)
 	ttl_cmd := pipe.TTL(ctx, key)
 
 	_, err = pipe.Exec(ctx)
@@ -231,11 +231,27 @@ func Int_Token_Set(key string, v interface{}) interface{} {
 	L.Fail(rte, "-json-marshal", err)
 
 	ctx := context.Background()
-	err = Rdb.Set(ctx, key, value, 1*time.Minute).Err()
+	err = Rdb.Set(ctx, key, value, 24*5*time.Hour).Err()
 	L.Fail(rte, "debug-rdb-set", err)
 
 	L.Good(rte, "rdb token set", key, err)
 	return key
+}
+
+func Int_Token_Get(key string) (interface{}, bool) {
+	ctx := context.Background()
+	rte := utils.Dev("𝕊𝕋𝔸𝔾𝔼𝕟", 0)
+
+	data, err := Rdb.Get(ctx, key).Result()
+	errIsNil := isNil(err)
+	L.Fail(rte, "get", err)
+
+	var v auth.Token
+	err = json.Unmarshal([]byte(data), &v)
+	L.Fail(rte, "get token", "key:", key, err)
+
+	L.Good(rte, "rdb-get", key, err)
+	return v, errIsNil
 }
 
 func DebugSet(key string, v interface{}) interface{} {
