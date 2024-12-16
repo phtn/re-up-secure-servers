@@ -48,7 +48,7 @@ func main() {
 	authGroup := server.Group(api.AuthPath, withAuth...)
 	authGroup.Post(api.VerifyIdTokenPath, api.VerifyUser)
 	authGroup.Post(api.VerifyUserPath, api.VerifyUser)
-	authGroup.Post(api.VerifyOnSigninPath, api.VerifyUser)
+	authGroup.Post(api.VerifyOnSigninPath, api.GetUser)
 	authGroup.Post(api.GetUserPath, api.GetUserInfo)
 	authGroup.Post(api.GetClaimsPath, api.GetClaims)
 	authGroup.Post(api.ActivateUserPath, api.ActivateUser)

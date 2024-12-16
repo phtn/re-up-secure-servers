@@ -44,19 +44,27 @@ var (
 	z = config.LoadConfig().Zap
 )
 
-func destruct(appErr *AppError) (int, string, interface{}) {
-	return appErr.Status, appErr.Message, appErr.Details
+func destruct(appErr *AppError) (int, string, string, interface{}) {
+	return appErr.Status, appErr.Message, appErr.Code, appErr.Details
 }
 
 func ErrResponse(c *fiber.Ctx, appErr *AppError, err error) error {
 
-	status, message, details := destruct(appErr)
-	L.Fail(f, strconv.Itoa(status), details, err, message)
-	if err != nil {
-		L.Fail(f, strconv.Itoa(status), details, err, message)
-	}
-	return c.Status(status).JSON(appErr)
+	status, message, code, details := destruct(appErr)
+	L.Fail(f, strconv.Itoa(status), details, err, code, message)
 
+	data := DataResponse{
+		Status:  status,
+		Code:    code,
+		Err:     err,
+		Message: message,
+		Data:    nil,
+	}
+	return c.Status(status).JSON(data)
+
+	// if err != nil {
+	// 		L.Fail(f, strconv.Itoa(status), details, err, message)
+	// 	}
 	// L.Good(f, strconv.Itoa(status), data.Details, data.Message)
 	// return c.Status(status).JSON(data)
 }
@@ -107,7 +115,6 @@ func ValidateFields(u rdb.Tokens) *[]ValidationError {
 func CookieHandler(c *fiber.Ctx, cookie string, data *DataResponse) error {
 
 	if data.Err != nil {
-
 		L.Fail(h, strconv.Itoa(data.Status), data.Err)
 		return c.Status(data.Status).JSON(data)
 	}

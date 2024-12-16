@@ -80,10 +80,14 @@ func CheckIfUserExists(uid string) (bool, *ent.User) {
 	return exists, nil
 }
 
-func GetUserByUid(uid string) *ent.User {
+func GetUserByUid(uid string) (*ent.User, error) {
 	user, err := pq.User.Query().Where(user.UID(uid)).First(ctx)
-	L.Fail(r, "get-user by-uid", err)
-	return user
+	if err != nil {
+
+		L.Fail(r, "get-user by-uid", err)
+		return nil, err
+	}
+	return user, nil
 }
 
 func GetAllAccounts() {

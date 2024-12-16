@@ -27,8 +27,6 @@ func RootRoute(c *fiber.Ctx) error {
 func AuthMiddleware(c *fiber.Ctx) error {
 
 	api_key := c.Get("X-API-Key")
-	refresh_token := c.Get("X-Refresh-Token")
-	auth_header := c.Get("Authorization")
 
 	is_active, err := psql.CheckAPIKey(api_key)
 	L.Fail(m, "api-key account-active", err)
@@ -57,33 +55,26 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		L.Good(m, "new-key-stored", new_store)
 	}
 
-	if refresh_token == "" {
-		refresh_token = u.Refresh
-	}
-	L.Info(m, h, "refresh-token check", refresh_token != "")
-	L.Info(m, h, "refresh-token check", u.Refresh != "")
+	L.Info(m, h, "inbody-refresh-token check", u.Refresh != "")
 
-	idToken := ""
-	if auth_header == "" {
-		L.Warn(m, "auth-header-is-empty", err)
-		idToken = u.IDToken
-	} else {
-		bearerToken := strings.Split(auth_header, " ")
-		if len(bearerToken) != 2 || bearerToken[0] != "Bearer" {
-			return ErrResponse(c, ErrUnauthorized, err)
-		}
-	}
+	L.Info(m, "idToken", strings.Count(u.IDToken, ""))
+	L.Info(m, "refresh", strings.Count(u.Refresh, ""))
 
 	t, err := fire.VerifyIDToken(c.Context(), u.IDToken)
 	if err != nil {
 		if auth.IsIDTokenExpired(err) {
 			n, err := fire.VerifyIDTokenAndCheckRevoked(c.Context(), u.Refresh)
 			if err != nil {
-				L.Fail(m, "expired-get-token-with-refresh", err)
-				return ErrResponse(c, ErrUnauthorized, err)
+				if auth.IsIDTokenExpired(err) {
+					L.Fail(m, "expired-get-token-with-refresh", err)
+					data := DataResponse{
+						Message: "idToken is expired",
+					}
+					return OkResponse(c, data, "Error")
+				}
 			}
 
-			c.Locals("id_token", n)
+			c.Locals("id_token", u.IDToken)
 			c.Locals("refresh_token", u.Refresh)
 			c.Locals("auth_token", n)
 
@@ -93,8 +84,8 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		return ErrResponse(c, ErrUnauthorized, err)
 	}
 
-	c.Locals("id_token", idToken)
-	c.Locals("refresh_token", refresh_token)
+	c.Locals("id_token", u.IDToken)
+	c.Locals("refresh_token", u.Refresh)
 	c.Locals("auth_token", t)
 
 	L.Info(m, "validated", t.UID)

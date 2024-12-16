@@ -47,6 +47,7 @@ const (
 	ErrCodeBadRequest   = "BAD_REQUEST"
 	ErrCodeDuplicate    = "DUPLICATE_ENTRY"
 	ErrCodeRateLimit    = "RATE_LIMIT_EXCEEDED"
+	ErrCodeNotFound     = "NOT_FOUND"
 )
 
 // Common application errors
@@ -79,6 +80,11 @@ var (
 		Status:  fiber.StatusInternalServerError,
 		Code:    ErrCodeInternal,
 		Message: "Internal server error",
+	}
+	ErrNotFound = &AppError{
+		Status:  fiber.StatusNotFound,
+		Code:    ErrCodeNotFound,
+		Message: "Not Found",
 	}
 )
 

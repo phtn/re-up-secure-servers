@@ -21,13 +21,14 @@ type Health struct {
 }
 
 const (
-	Root   = "/v1"
-	Livez  = "livez"
-	Readyz = "readyz"
-	Auth   = Root + "/auth"
-	Admin  = Root + "/admin"
-	Claims = Root + "/claims"
-	Dev    = Root + "/dev"
+	Root       = "/v1"
+	Livez      = "livez"
+	Readyz     = "readyz"
+	Activation = "verify-activation-code"
+	Auth       = Root + "/auth"
+	Admin      = Root + "/admin"
+	Claims     = Root + "/claims"
+	Dev        = Root + "/dev"
 )
 
 const (
@@ -39,7 +40,7 @@ const (
 	VerifyOnSigninPath  = "/verify-on-signin"
 	VerifyAuthKeyPath   = "/verify-auth-key"
 	VerifyAgentCodePath = "/verify-agent-code"
-	ActivateUserPath    = "/activate-user"
+	ActivateUserPath    = "/activate-account"
 	// CLAIMS
 	ClaimsPath       = Claims
 	CustomClaimsPath = "/create-custom-claims"
@@ -55,6 +56,7 @@ const (
 	AccountTokenPath = "/create-account-token"
 	DevPath          = Dev
 	DebugRedisPath   = "/rdb-debug"
+	// SERVER
 )
 
 const (
@@ -138,29 +140,26 @@ func VerifyUser(c *fiber.Ctx) error {
 	// return ErrResponse(c, ErrUnauthorized, err)
 	// }
 
-	session, err := fire.VerifyIDToken(c.Context(), id_token)
-	if err != nil {
-		return ErrResponse(c, ErrUnauthorized, err)
-	}
 	// if time.Until(store.Expiry) < 5*time.Minute {
 	// 		L.Warn(h, "expiry is less that 5 mins", time.Until(store.Expiry))
 	// 		cookieStr, err = fire.SessionCookie(c.Context(), id_token, expiresIn)
 	// 		ErrResponse(c, ErrUnauthorized, err)
 	// 	}
 	cookie, err := fire.SessionCookie(c.Context(), id_token, expiresIn)
+	if err != nil {
+		return ErrResponse(c, ErrInternalServer, err)
+	}
 
 	var details interface{}
-	if session.UID == auth_token.UID {
-		claims := session.Claims
+	claims := auth_token.Claims
 
-		details = fiber.Map{
-			"status": OK,
-			"data": models.UserVerified{
-				UID:      session.UID,
-				Claims:   claims,
-				Verified: true,
-			},
-		}
+	details = fiber.Map{
+		"status": OK,
+		"data": models.UserVerified{
+			UID:      auth_token.UID,
+			Claims:   claims,
+			Verified: true,
+		},
 	}
 
 	L.Good(h, "key found", "OK")
@@ -184,8 +183,7 @@ func VerifyIdToken(c *fiber.Ctx) error {
 
 	result, err := service.VerifyIdToken(c.Context(), out)
 	L.Fail(h, "verification", err)
-	data := Res{Data: result}
-	return OkResponse(c, data, nil)
+	return OkResponse(c, result, nil)
 }
 
 func GetUserInfo(c *fiber.Ctx) error {
@@ -302,4 +300,16 @@ func GetClaims(c *fiber.Ctx) error {
 	L.Info(h, "data", data)
 
 	return OkResponse(c, data, nil)
+}
+
+func GetUser(c *fiber.Ctx) error {
+	var v models.Uid
+	if err := c.BodyParser(&v); err != nil {
+		return ErrResponse(c, ErrBadRequest, err)
+	}
+	user, err := psql.GetUserByUid(v.UID)
+	if err != nil {
+		ErrorHandler(c, ErrNotFound)
+	}
+	return OkResponse(c, user, "OK")
 }
