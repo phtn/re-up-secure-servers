@@ -457,9 +457,7 @@ func (gq *GroupQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*
 			init(nodes[i])
 		}
 	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(user.FieldGroupID)
-	}
+	query.withFKs = true
 	query.Where(predicate.User(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(group.UsersColumn), fks...))
 	}))
@@ -468,10 +466,13 @@ func (gq *GroupQuery) loadUsers(ctx context.Context, query *UserQuery, nodes []*
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.GroupID
-		node, ok := nodeids[fk]
+		fk := n.group_users
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "group_users" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "group_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "group_users" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

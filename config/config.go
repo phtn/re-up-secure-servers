@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fast/ent"
+	"fast/ent/migrate"
 	"fast/pkg/utils"
 	"log"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	dialect "entgo.io/ent/dialect"
 	esql "entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/schema"
 	_ "github.com/lib/pq"
 
 	firebase "firebase.google.com/go/v4"
@@ -127,6 +129,16 @@ func initPostgres() *ent.Client {
 
 	driver := dialect.Postgres
 	client := ent.NewClient(ent.Driver(esql.OpenDB(driver, db)))
+	ctx := context.Background()
+
+	options := []schema.MigrateOption{
+		migrate.WithDropColumn(true),
+		migrate.WithDropIndex(true),
+		migrate.WithForeignKeys(true),
+		migrate.WithGlobalUniqueID(true),
+	}
+
+	client.Schema.Create(ctx, options...)
 
 	return client
 }

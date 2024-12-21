@@ -72,9 +72,9 @@ var (
 		{Name: "address_id", Type: field.TypeString, Size: 255, Default: "none"},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "group_code", Type: field.TypeString, Unique: true},
+		{Name: "group_code", Type: field.TypeString, Nullable: true},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
-		{Name: "group_id", Type: field.TypeUUID},
+		{Name: "group_users", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -86,7 +86,7 @@ var (
 				Symbol:     "users_groups_users",
 				Columns:    []*schema.Column{UsersColumns[12]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{
@@ -99,11 +99,6 @@ var (
 				Name:    "user_uid",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[6]},
-			},
-			{
-				Name:    "user_group_id",
-				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[12]},
 			},
 			{
 				Name:    "user_group_code",

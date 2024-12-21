@@ -25,10 +25,7 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New),
-		field.UUID("group_id", uuid.UUID{}).
-			Unique(),
-		field.String("group_code").
-			Unique(),
+		field.String("group_code").Optional().Nillable(),
 		field.Bool("is_active").
 			Default(true),
 	}
@@ -41,7 +38,6 @@ func (User) Indexes() []ent.Index {
 			Unique(),
 		index.Fields("uid").
 			Unique(),
-		index.Fields("group_id"),
 		index.Fields("group_code"),
 	}
 }
@@ -51,8 +47,6 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("group", Group.Type).
 			Ref("users").
-			Unique().
-			Field("group_id").
-			Required(),
+			Unique(),
 	}
 }

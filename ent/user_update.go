@@ -157,20 +157,6 @@ func (uu *UserUpdate) SetNillableAddressID(s *string) *UserUpdate {
 	return uu
 }
 
-// SetGroupID sets the "group_id" field.
-func (uu *UserUpdate) SetGroupID(u uuid.UUID) *UserUpdate {
-	uu.mutation.SetGroupID(u)
-	return uu
-}
-
-// SetNillableGroupID sets the "group_id" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableGroupID(u *uuid.UUID) *UserUpdate {
-	if u != nil {
-		uu.SetGroupID(*u)
-	}
-	return uu
-}
-
 // SetGroupCode sets the "group_code" field.
 func (uu *UserUpdate) SetGroupCode(s string) *UserUpdate {
 	uu.mutation.SetGroupCode(s)
@@ -185,6 +171,12 @@ func (uu *UserUpdate) SetNillableGroupCode(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearGroupCode clears the value of the "group_code" field.
+func (uu *UserUpdate) ClearGroupCode() *UserUpdate {
+	uu.mutation.ClearGroupCode()
+	return uu
+}
+
 // SetIsActive sets the "is_active" field.
 func (uu *UserUpdate) SetIsActive(b bool) *UserUpdate {
 	uu.mutation.SetIsActive(b)
@@ -195,6 +187,20 @@ func (uu *UserUpdate) SetIsActive(b bool) *UserUpdate {
 func (uu *UserUpdate) SetNillableIsActive(b *bool) *UserUpdate {
 	if b != nil {
 		uu.SetIsActive(*b)
+	}
+	return uu
+}
+
+// SetGroupID sets the "group" edge to the Group entity by ID.
+func (uu *UserUpdate) SetGroupID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetGroupID(id)
+	return uu
+}
+
+// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableGroupID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetGroupID(*id)
 	}
 	return uu
 }
@@ -279,9 +285,6 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "User.address_id": %w`, err)}
 		}
 	}
-	if uu.mutation.GroupCleared() && len(uu.mutation.GroupIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "User.group"`)
-	}
 	return nil
 }
 
@@ -335,6 +338,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.GroupCode(); ok {
 		_spec.SetField(user.FieldGroupCode, field.TypeString, value)
+	}
+	if uu.mutation.GroupCodeCleared() {
+		_spec.ClearField(user.FieldGroupCode, field.TypeString)
 	}
 	if value, ok := uu.mutation.IsActive(); ok {
 		_spec.SetField(user.FieldIsActive, field.TypeBool, value)
@@ -516,20 +522,6 @@ func (uuo *UserUpdateOne) SetNillableAddressID(s *string) *UserUpdateOne {
 	return uuo
 }
 
-// SetGroupID sets the "group_id" field.
-func (uuo *UserUpdateOne) SetGroupID(u uuid.UUID) *UserUpdateOne {
-	uuo.mutation.SetGroupID(u)
-	return uuo
-}
-
-// SetNillableGroupID sets the "group_id" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableGroupID(u *uuid.UUID) *UserUpdateOne {
-	if u != nil {
-		uuo.SetGroupID(*u)
-	}
-	return uuo
-}
-
 // SetGroupCode sets the "group_code" field.
 func (uuo *UserUpdateOne) SetGroupCode(s string) *UserUpdateOne {
 	uuo.mutation.SetGroupCode(s)
@@ -544,6 +536,12 @@ func (uuo *UserUpdateOne) SetNillableGroupCode(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearGroupCode clears the value of the "group_code" field.
+func (uuo *UserUpdateOne) ClearGroupCode() *UserUpdateOne {
+	uuo.mutation.ClearGroupCode()
+	return uuo
+}
+
 // SetIsActive sets the "is_active" field.
 func (uuo *UserUpdateOne) SetIsActive(b bool) *UserUpdateOne {
 	uuo.mutation.SetIsActive(b)
@@ -554,6 +552,20 @@ func (uuo *UserUpdateOne) SetIsActive(b bool) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetNillableIsActive(b *bool) *UserUpdateOne {
 	if b != nil {
 		uuo.SetIsActive(*b)
+	}
+	return uuo
+}
+
+// SetGroupID sets the "group" edge to the Group entity by ID.
+func (uuo *UserUpdateOne) SetGroupID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetGroupID(id)
+	return uuo
+}
+
+// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableGroupID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetGroupID(*id)
 	}
 	return uuo
 }
@@ -651,9 +663,6 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "address_id", err: fmt.Errorf(`ent: validator failed for field "User.address_id": %w`, err)}
 		}
 	}
-	if uuo.mutation.GroupCleared() && len(uuo.mutation.GroupIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "User.group"`)
-	}
 	return nil
 }
 
@@ -724,6 +733,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.GroupCode(); ok {
 		_spec.SetField(user.FieldGroupCode, field.TypeString, value)
+	}
+	if uuo.mutation.GroupCodeCleared() {
+		_spec.ClearField(user.FieldGroupCode, field.TypeString)
 	}
 	if value, ok := uuo.mutation.IsActive(); ok {
 		_spec.SetField(user.FieldIsActive, field.TypeBool, value)

@@ -346,7 +346,7 @@ func init() {
 	// user.DefaultUpdateTime holds the default value on creation for the update_time field.
 	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
 	// userDescIsActive is the schema descriptor for is_active field.
-	userDescIsActive := userFields[3].Descriptor()
+	userDescIsActive := userFields[2].Descriptor()
 	// user.DefaultIsActive holds the default value on creation for the is_active field.
 	user.DefaultIsActive = userDescIsActive.Default.(bool)
 	// userDescID is the schema descriptor for id field.

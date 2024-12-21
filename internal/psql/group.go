@@ -6,26 +6,29 @@ import (
 	"github.com/google/uuid"
 )
 
-func CreateNewGroup(name string, email string, phone_number string, uid string, group_code string, account_id uuid.UUID, photo_url string, is_active bool) string {
+func CreateNewGroup(name string, email string, phone_number string, uid string, group_code string, account_id uuid.UUID, photo_url string) (string, error) {
 
 	group, err := pq.Group.
 		Create().
 		SetName(name).
-		SetNickname("").
+		SetNickname(name).
 		SetEmail(email).
 		SetPhoneNumber(phone_number).
 		SetGroupCode(group_code).
 		SetPhotoURL(photo_url).
-		SetIsActive(true).
 		SetAccountID(account_id).
 		SetUID(uid + "--m").
 		SetAddress("re-up-hq").
+		SetIsActive(true).
 		Save(ctx)
 
 	L.Fail(r, "group-create", err)
 
-	L.Good(r, "group-create", group.ID, err)
-	return group.UID
+	if err != nil {
+		return "error", err
+	}
+
+	return group.UID, nil
 }
 
 func GetGroupCode(uid string) string {

@@ -37,15 +37,14 @@ type User struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
-	// GroupID holds the value of the "group_id" field.
-	GroupID uuid.UUID `json:"group_id,omitempty"`
 	// GroupCode holds the value of the "group_code" field.
-	GroupCode string `json:"group_code,omitempty"`
+	GroupCode *string `json:"group_code,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
+	group_users  *uuid.UUID
 	selectValues sql.SelectValues
 }
 
@@ -80,8 +79,10 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
-		case user.FieldID, user.FieldGroupID:
+		case user.FieldID:
 			values[i] = new(uuid.UUID)
+		case user.ForeignKeys[0]: // group_users
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -158,23 +159,25 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UpdateTime = value.Time
 			}
-		case user.FieldGroupID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field group_id", values[i])
-			} else if value != nil {
-				u.GroupID = *value
-			}
 		case user.FieldGroupCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field group_code", values[i])
 			} else if value.Valid {
-				u.GroupCode = value.String
+				u.GroupCode = new(string)
+				*u.GroupCode = value.String
 			}
 		case user.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_active", values[i])
 			} else if value.Valid {
 				u.IsActive = value.Bool
+			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field group_users", values[i])
+			} else if value.Valid {
+				u.group_users = new(uuid.UUID)
+				*u.group_users = *value.S.(*uuid.UUID)
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -246,11 +249,10 @@ func (u *User) String() string {
 	builder.WriteString("update_time=")
 	builder.WriteString(u.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("group_id=")
-	builder.WriteString(fmt.Sprintf("%v", u.GroupID))
-	builder.WriteString(", ")
-	builder.WriteString("group_code=")
-	builder.WriteString(u.GroupCode)
+	if v := u.GroupCode; v != nil {
+		builder.WriteString("group_code=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", u.IsActive))

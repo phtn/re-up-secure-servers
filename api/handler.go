@@ -24,6 +24,7 @@ const (
 	Root       = "/v1"
 	Livez      = "livez"
 	Readyz     = "readyz"
+	OneTime    = "one-time"
 	Activation = "verify-activation-code"
 	Auth       = Root + "/auth"
 	Admin      = Root + "/admin"
@@ -81,6 +82,20 @@ func ServerLivez(c *fiber.Ctx) error {
 
 func ServerReadyz(c *fiber.Ctx) error {
 	L.Info(h, "readyz", "OK")
+	return OkResponse(c, "All systems ready", "⚡")
+}
+
+func OneTimeAccess(c *fiber.Ctx) error {
+	L.Info(h, "one-time", "OK")
+	var g *models.Group
+	if err := c.BodyParser(&g); err != nil {
+		L.Fail(h, "one-time body-parser", err)
+		return ErrResponse(c, ErrBadRequest, err)
+	}
+	err := service.CreateNewGroup(g)
+	if err != nil {
+		return ErrResponse(c, ErrBadRequest, err)
+	}
 	return OkResponse(c, "All systems ready", "⚡")
 }
 
@@ -237,32 +252,30 @@ func ActivateUser(c *fiber.Ctx) error {
 	}
 	if result.Verified {
 
-		a := service.UnlockWithKey(v.HCode)
-		data := Res{Data: &a}
+		d := service.UnlockWithKey(v.HCode)
 
-		claim := map[string]interface{}{"agent": true}
-		claims, err := service.AddCustomClaim(v.IDToken, v.UID, claim)
+		claims, err := service.AddCustomClaim(v.IDToken, v.UID, "agent")
 		L.Fail(h, "activation add-agent-claim", err)
-		data = Res{Data: "Unable to add custom claims for uid"}
+		L.Info(h, "add-custom-claims response", claims)
 		if err != nil {
 			return ErrResponse(c, ErrUnauthorized, err)
 		}
 
-		withClaims := claims.Claims["agent"] != nil
+		// withClaims := claims.Claims["agent"] != nil
 
-		if withClaims {
-			L.Good(h, "activation custom-claim-added", withClaims)
+		if claims != nil {
+			L.Good(h, "activation custom-claim-added", true)
 
 			if exists, user := psql.CheckIfUserExists(v.UID); exists {
-				res, err := user.Update().SetGroupCode(a.GroupCode).Save(context.Background())
+				res, err := user.Update().SetGroupCode(d.GroupCode).Save(context.Background())
 				L.Fail("activate-user", "set-group-code", err)
 				L.Good("activate-user", "set-group-code", res.GroupCode)
 
-				return OkResponse(c, data, nil)
+				return OkResponse(c, d, nil)
 			}
 
 			phone_number := service.MockPhone()
-			new_user := psql.NewUser(v.Email, v.Email, phone_number, v.UID, a.GroupCode)
+			new_user := psql.NewUser(v.Email, v.Email, phone_number, v.UID, d.GroupCode)
 
 			if new_user == v.UID {
 				L.Good(h, "uid", new_user)

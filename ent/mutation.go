@@ -2849,42 +2849,6 @@ func (m *UserMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
-// SetGroupID sets the "group_id" field.
-func (m *UserMutation) SetGroupID(u uuid.UUID) {
-	m.group = &u
-}
-
-// GroupID returns the value of the "group_id" field in the mutation.
-func (m *UserMutation) GroupID() (r uuid.UUID, exists bool) {
-	v := m.group
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGroupID returns the old "group_id" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldGroupID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGroupID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
-	}
-	return oldValue.GroupID, nil
-}
-
-// ResetGroupID resets all changes to the "group_id" field.
-func (m *UserMutation) ResetGroupID() {
-	m.group = nil
-}
-
 // SetGroupCode sets the "group_code" field.
 func (m *UserMutation) SetGroupCode(s string) {
 	m.group_code = &s
@@ -2902,7 +2866,7 @@ func (m *UserMutation) GroupCode() (r string, exists bool) {
 // OldGroupCode returns the old "group_code" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldGroupCode(ctx context.Context) (v string, err error) {
+func (m *UserMutation) OldGroupCode(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldGroupCode is only allowed on UpdateOne operations")
 	}
@@ -2916,9 +2880,22 @@ func (m *UserMutation) OldGroupCode(ctx context.Context) (v string, err error) {
 	return oldValue.GroupCode, nil
 }
 
+// ClearGroupCode clears the value of the "group_code" field.
+func (m *UserMutation) ClearGroupCode() {
+	m.group_code = nil
+	m.clearedFields[user.FieldGroupCode] = struct{}{}
+}
+
+// GroupCodeCleared returns if the "group_code" field was cleared in this mutation.
+func (m *UserMutation) GroupCodeCleared() bool {
+	_, ok := m.clearedFields[user.FieldGroupCode]
+	return ok
+}
+
 // ResetGroupCode resets all changes to the "group_code" field.
 func (m *UserMutation) ResetGroupCode() {
 	m.group_code = nil
+	delete(m.clearedFields, user.FieldGroupCode)
 }
 
 // SetIsActive sets the "is_active" field.
@@ -2957,15 +2934,27 @@ func (m *UserMutation) ResetIsActive() {
 	m.is_active = nil
 }
 
+// SetGroupID sets the "group" edge to the Group entity by id.
+func (m *UserMutation) SetGroupID(id uuid.UUID) {
+	m.group = &id
+}
+
 // ClearGroup clears the "group" edge to the Group entity.
 func (m *UserMutation) ClearGroup() {
 	m.clearedgroup = true
-	m.clearedFields[user.FieldGroupID] = struct{}{}
 }
 
 // GroupCleared reports if the "group" edge to the Group entity was cleared.
 func (m *UserMutation) GroupCleared() bool {
 	return m.clearedgroup
+}
+
+// GroupID returns the "group" edge ID in the mutation.
+func (m *UserMutation) GroupID() (id uuid.UUID, exists bool) {
+	if m.group != nil {
+		return *m.group, true
+	}
+	return
 }
 
 // GroupIDs returns the "group" edge IDs in the mutation.
@@ -3018,7 +3007,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 11)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
@@ -3045,9 +3034,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.update_time != nil {
 		fields = append(fields, user.FieldUpdateTime)
-	}
-	if m.group != nil {
-		fields = append(fields, user.FieldGroupID)
 	}
 	if m.group_code != nil {
 		fields = append(fields, user.FieldGroupCode)
@@ -3081,8 +3067,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case user.FieldUpdateTime:
 		return m.UpdateTime()
-	case user.FieldGroupID:
-		return m.GroupID()
 	case user.FieldGroupCode:
 		return m.GroupCode()
 	case user.FieldIsActive:
@@ -3114,8 +3098,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCreateTime(ctx)
 	case user.FieldUpdateTime:
 		return m.OldUpdateTime(ctx)
-	case user.FieldGroupID:
-		return m.OldGroupID(ctx)
 	case user.FieldGroupCode:
 		return m.OldGroupCode(ctx)
 	case user.FieldIsActive:
@@ -3192,13 +3174,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdateTime(v)
 		return nil
-	case user.FieldGroupID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGroupID(v)
-		return nil
 	case user.FieldGroupCode:
 		v, ok := value.(string)
 		if !ok {
@@ -3258,6 +3233,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldPhotoURL) {
 		fields = append(fields, user.FieldPhotoURL)
 	}
+	if m.FieldCleared(user.FieldGroupCode) {
+		fields = append(fields, user.FieldGroupCode)
+	}
 	return fields
 }
 
@@ -3286,6 +3264,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldPhotoURL:
 		m.ClearPhotoURL()
+		return nil
+	case user.FieldGroupCode:
+		m.ClearGroupCode()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -3321,9 +3302,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUpdateTime:
 		m.ResetUpdateTime()
-		return nil
-	case user.FieldGroupID:
-		m.ResetGroupID()
 		return nil
 	case user.FieldGroupCode:
 		m.ResetGroupCode()

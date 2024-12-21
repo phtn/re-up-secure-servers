@@ -7,38 +7,38 @@ import (
 	"firebase.google.com/go/v4/auth"
 )
 
-type CustomClaims map[string]interface{}
+type Claims map[string]interface{}
 
 type UserClaims struct {
 	Role string `json:"role,omitempty"`
 }
 
 type UserCredentials struct {
-	UID          string       `json:"uid,omitempty"`
-	Email        string       `json:"email,omitempty"`
-	Claims       UserClaims   `json:"claims,omitempty"`
-	IDToken      string       `json:"id_token,omitempty"`
-	Subject      string       `json:"sub,omitempty"`
-	AdminKey     string       `json:"admin_key,omitempty"`
-	CustomClaims CustomClaims `json:"custom_claims,omitempty"`
+	UID          string     `json:"uid,omitempty"`
+	Email        string     `json:"email,omitempty"`
+	Claims       UserClaims `json:"claims,omitempty"`
+	IDToken      string     `json:"id_token,omitempty"`
+	Subject      string     `json:"sub,omitempty"`
+	AdminKey     string     `json:"admin_key,omitempty"`
+	CustomClaims Claims     `json:"custom_claims,omitempty"`
 }
 
 var (
 	ctx = context.Background()
 )
 
-func AddCustomClaim(idToken string, uid string, customClaims CustomClaims) (*auth.Token, error) {
+func AddCustomClaim(idToken string, uid string, claim string) (*auth.Token, error) {
 
-	context := context.Background()
+	customClaims := Claims{claim: true}
 
-	err := fire.SetCustomUserClaims(context, uid, customClaims)
+	err := fire.SetCustomUserClaims(ctx, uid, customClaims)
 	if err != nil {
 		return nil, err
 	}
 
-	L.Info(idToken, uid, customClaims)
+	L.Info("check set", uid, customClaims)
 
-	token, err := fire.VerifyIDToken(context, idToken)
+	token, err := fire.VerifyIDToken(ctx, idToken)
 	if err != nil {
 		return nil, err
 	}
@@ -49,14 +49,13 @@ func AddCustomClaim(idToken string, uid string, customClaims CustomClaims) (*aut
 		switch v := value.(type) {
 		case string:
 			if withClaim, ok := claims[k]; ok {
-				if withClaim.(bool) {
-					L.Good("claim", k, "confirmed", v)
-					return token, nil
-				}
+				L.Good("claim", k, "confirmed", withClaim)
+				return token, nil
 			}
 
 		default:
-			L.Info("agent", "k", k, "value", value)
+			L.Info("agent", "k", k, "value", v, value)
+			return token, nil
 		}
 	}
 	return nil, err

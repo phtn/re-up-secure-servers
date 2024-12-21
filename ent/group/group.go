@@ -53,7 +53,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UsersInverseTable = "users"
 	// UsersColumn is the table column denoting the users relation/edge.
-	UsersColumn = "group_id"
+	UsersColumn = "group_users"
 	// AccountTable is the table that holds the account relation/edge.
 	AccountTable = "groups"
 	// AccountInverseTable is the table name for the Account entity.

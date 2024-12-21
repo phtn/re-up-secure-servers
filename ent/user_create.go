@@ -140,15 +140,17 @@ func (uc *UserCreate) SetNillableUpdateTime(t *time.Time) *UserCreate {
 	return uc
 }
 
-// SetGroupID sets the "group_id" field.
-func (uc *UserCreate) SetGroupID(u uuid.UUID) *UserCreate {
-	uc.mutation.SetGroupID(u)
-	return uc
-}
-
 // SetGroupCode sets the "group_code" field.
 func (uc *UserCreate) SetGroupCode(s string) *UserCreate {
 	uc.mutation.SetGroupCode(s)
+	return uc
+}
+
+// SetNillableGroupCode sets the "group_code" field if the given value is not nil.
+func (uc *UserCreate) SetNillableGroupCode(s *string) *UserCreate {
+	if s != nil {
+		uc.SetGroupCode(*s)
+	}
 	return uc
 }
 
@@ -176,6 +178,20 @@ func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 func (uc *UserCreate) SetNillableID(u *uuid.UUID) *UserCreate {
 	if u != nil {
 		uc.SetID(*u)
+	}
+	return uc
+}
+
+// SetGroupID sets the "group" edge to the Group entity by ID.
+func (uc *UserCreate) SetGroupID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetGroupID(id)
+	return uc
+}
+
+// SetNillableGroupID sets the "group" edge to the Group entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableGroupID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetGroupID(*id)
 	}
 	return uc
 }
@@ -299,17 +315,8 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.UpdateTime(); !ok {
 		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "User.update_time"`)}
 	}
-	if _, ok := uc.mutation.GroupID(); !ok {
-		return &ValidationError{Name: "group_id", err: errors.New(`ent: missing required field "User.group_id"`)}
-	}
-	if _, ok := uc.mutation.GroupCode(); !ok {
-		return &ValidationError{Name: "group_code", err: errors.New(`ent: missing required field "User.group_code"`)}
-	}
 	if _, ok := uc.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "User.is_active"`)}
-	}
-	if len(uc.mutation.GroupIDs()) == 0 {
-		return &ValidationError{Name: "group", err: errors.New(`ent: missing required edge "User.group"`)}
 	}
 	return nil
 }
@@ -384,7 +391,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := uc.mutation.GroupCode(); ok {
 		_spec.SetField(user.FieldGroupCode, field.TypeString, value)
-		_node.GroupCode = value
+		_node.GroupCode = &value
 	}
 	if value, ok := uc.mutation.IsActive(); ok {
 		_spec.SetField(user.FieldIsActive, field.TypeBool, value)
@@ -404,7 +411,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.GroupID = nodes[0]
+		_node.group_users = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

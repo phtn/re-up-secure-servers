@@ -101,11 +101,6 @@ func UpdateTime(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUpdateTime, v))
 }
 
-// GroupID applies equality check predicate on the "group_id" field. It's identical to GroupIDEQ.
-func GroupID(v uuid.UUID) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldGroupID, v))
-}
-
 // GroupCode applies equality check predicate on the "group_code" field. It's identical to GroupCodeEQ.
 func GroupCode(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldGroupCode, v))
@@ -701,26 +696,6 @@ func UpdateTimeLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldUpdateTime, v))
 }
 
-// GroupIDEQ applies the EQ predicate on the "group_id" field.
-func GroupIDEQ(v uuid.UUID) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldGroupID, v))
-}
-
-// GroupIDNEQ applies the NEQ predicate on the "group_id" field.
-func GroupIDNEQ(v uuid.UUID) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldGroupID, v))
-}
-
-// GroupIDIn applies the In predicate on the "group_id" field.
-func GroupIDIn(vs ...uuid.UUID) predicate.User {
-	return predicate.User(sql.FieldIn(FieldGroupID, vs...))
-}
-
-// GroupIDNotIn applies the NotIn predicate on the "group_id" field.
-func GroupIDNotIn(vs ...uuid.UUID) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldGroupID, vs...))
-}
-
 // GroupCodeEQ applies the EQ predicate on the "group_code" field.
 func GroupCodeEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldGroupCode, v))
@@ -774,6 +749,16 @@ func GroupCodeHasPrefix(v string) predicate.User {
 // GroupCodeHasSuffix applies the HasSuffix predicate on the "group_code" field.
 func GroupCodeHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldGroupCode, v))
+}
+
+// GroupCodeIsNil applies the IsNil predicate on the "group_code" field.
+func GroupCodeIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldGroupCode))
+}
+
+// GroupCodeNotNil applies the NotNil predicate on the "group_code" field.
+func GroupCodeNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldGroupCode))
 }
 
 // GroupCodeEqualFold applies the EqualFold predicate on the "group_code" field.

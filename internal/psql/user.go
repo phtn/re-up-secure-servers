@@ -15,9 +15,6 @@ func mock_url() string {
 
 func NewUser(name string, email string, phone_number string, uid string, group_code string) string {
 
-	group_id, err := GetGroupId(group_code)
-	L.Fail(r, "new-user get-group-id", group_id, err)
-
 	photo_url := mock_url()
 
 	user, err := pq.User.
@@ -27,7 +24,6 @@ func NewUser(name string, email string, phone_number string, uid string, group_c
 		SetPhoneNumber(phone_number).
 		SetPhotoURL(photo_url).
 		SetGroupCode(group_code).
-		SetGroupID(group_id).
 		SetIsActive(group_code != "NEO").
 		SetUID(uid).
 		Save(ctx)

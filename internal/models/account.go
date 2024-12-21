@@ -1,14 +1,8 @@
 package models
 
 import (
-	"context"
 	"fast/config"
-	"fast/internal/shield"
 	"fast/pkg/utils"
-	"fmt"
-	"time"
-
-	"github.com/goccy/go-json"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -31,14 +25,17 @@ const (
 )
 
 type Account struct {
-	UID       string `json:"uid,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Email     string `json:"email,omitempty"`
-	APIKey    string `json:"api_key,omitempty"`
-	Active    bool   `json:"is_active,omitempty"`
-	Role      Role   `json:"role,omitempty"`
-	CrTime    string `json:"creation_time,omitempty"`
-	AddressId string `json:"address_id,omitempty"`
+	UID         string `json:"uid,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Nickname    string `json:"nickname,omitempty"`
+	Email       string `json:"email,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty"`
+	PhotoURL    string `json:"photo_url,omitempty"`
+	APIKey      string `json:"api_key,omitempty"`
+	Active      bool   `json:"is_active,omitempty"`
+	CrTime      string `json:"creation_time,omitempty"`
+	AddressId   string `json:"address_id,omitempty"`
+	UpdateAt    string `json:"update_time,omitempty"`
 }
 
 type CustomClaims struct {
@@ -55,80 +52,58 @@ var (
 	rdb  = config.LoadConfig().Rdbs
 )
 
-func NewAccountCustomClaims(acct Account) (string, error) {
+// func verifyToken(tokenString string) (string, error) {
 
-	now := time.Now()
-	claims := CustomClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
-			Issuer:    "re-up.ph secure servers",
-			Subject:   acct.UID,
-			Audience:  []string{"re-up secure servers clients"},
-		},
-		UID:  acct.UID,
-		Role: acct.Role,
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwts)
-	L.Fail("claim", "unable to signed token", err)
+// 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+// 		return jwts, nil
+// 	})
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return verifyToken(tokenString)
-}
+// 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+// 		storeClaims(shield.NewClaimsKey(claims.Email), claims)
+// 	}
 
-func verifyToken(tokenString string) (string, error) {
+// 	return "", fmt.Errorf("invalid token")
+// }
 
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return jwts, nil
-	})
-	if err != nil {
-		return "", err
-	}
+// func storeClaims(key string, v *CustomClaims) {
 
-	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
-		storeClaims(shield.NewClaimsKey(claims.Email), claims)
-	}
+// 	value, err := json.Marshal(&v)
+// 	L.Fail("json", "marshal-store-claims", err)
 
-	return "", fmt.Errorf("invalid token")
-}
+// 	ctx := context.Background()
+// 	err = rdb.Set(ctx, key, value, 24*7*time.Hour).Err()
+// 	L.Fail("redis", "set store-claims", err)
 
-func storeClaims(key string, v *CustomClaims) {
+// 	L.Good("redis", "set complete", key, err)
+// }
 
-	value, err := json.Marshal(&v)
-	L.Fail("json", "marshal-store-claims", err)
+// func GenerateRefreshToken(user Account, key []byte) (string, error) {
+// 	claims := jwt.RegisteredClaims{
+// 		Subject:   user.UID,
+// 		Issuer:    "re-up.ph secure servers",
+// 		IssuedAt:  jwt.NewNumericDate(time.Now()),
+// 		NotBefore: jwt.NewNumericDate(time.Now()),
+// 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * 7 * time.Hour)),
+// 		Audience:  []string{"Re-up Secure Servers Clients"},
+// 	}
 
-	ctx := context.Background()
-	err = rdb.Set(ctx, key, value, 24*7*time.Hour).Err()
-	L.Fail("redis", "set store-claims", err)
+// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+// 	return token.SignedString(key)
+// }
 
-	L.Good("redis", "set complete", key, err)
-}
+// func GenerateAccessToken(user Account) (string, error) {
+// 	claims := jwt.RegisteredClaims{
+// 		Subject:   user.UID,
+// 		Issuer:    "re-up.ph secure servers",
+// 		IssuedAt:  jwt.NewNumericDate(time.Now()),
+// 		NotBefore: jwt.NewNumericDate(time.Now()),
+// 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+// 		Audience:  []string{"Re-up Secure Servers Clients"},
+// 	}
 
-func GenerateRefreshToken(user Account, key []byte) (string, error) {
-	claims := jwt.RegisteredClaims{
-		Subject:   user.UID,
-		Issuer:    "re-up.ph secure servers",
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		NotBefore: jwt.NewNumericDate(time.Now()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * 7 * time.Hour)),
-		Audience:  []string{"Re-up Secure Servers Clients"},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(key)
-}
-
-func GenerateAccessToken(user Account) (string, error) {
-	claims := jwt.RegisteredClaims{
-		Subject:   user.UID,
-		Issuer:    "re-up.ph secure servers",
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-		NotBefore: jwt.NewNumericDate(time.Now()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
-		Audience:  []string{"Re-up Secure Servers Clients"},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwts)
-}
+// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+// 	return token.SignedString(jwts)
+// }

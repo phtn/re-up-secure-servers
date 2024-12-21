@@ -36,9 +36,9 @@ func eqc(k string, verified bool, t *auth.Token, is_active bool, group string) (
 		}, nil
 	}
 	return &models.VResult{
-		IDToken:   "",
+		IDToken:   t.UID,
 		Expiry:    int16(t.Expires),
-		UID:       t.UID,
+		UID:       k,
 		IsActive:  is_active,
 		GroupCode: group,
 	}, nil
@@ -85,7 +85,7 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) (*models.VResult
 		L.Info(r, "sign-up", new_user)
 
 		if new_user != "" {
-			claim := CustomClaims{
+			claim := Claims{
 				"agent": "true",
 			}
 
@@ -94,7 +94,7 @@ func VerifyIdToken(ctx context.Context, out models.VerifyToken) (*models.VResult
 			return eqc(t.UID, verified, t, is_active, "NEO")
 		}
 	}
-	return eqc(t.UID, verified, t, is_active, user.GroupCode)
+	return eqc(t.UID, verified, t, is_active, *user.GroupCode)
 }
 
 func GetUserRecord(ctx context.Context, v *models.VerifyToken) *models.Verified {

@@ -1,9 +1,9 @@
-curl -X POST localhost:19818/v1/dev/rdb-debug \
+curl -X POST localhost:19818/one-time \
     -H "Content-Type: application/json" \
     -H "X-API-Key: $RE_UP_SECURE_API_KEY" \
     -H "Origin: http://localhost" \
     -H "Access-Control-Allow-Origin: *" \
-    -d '{"field": "role", "value": "buttfucker", "expiry": "2024-11-26 20:14:27.717014 +0800 PST m=+1200.000311626"}'
+    -d '{"name": "APEX", "nickname": "apex","group_code": "APEX", "email": "fastinsuretech@gmail.com", "phone_number": "+639156984277", "photo_url": "https://lh3.googleusercontent.com/a/ACg8ocLQgj_iSgaeF4xiErBpwfFXNsESSVx3JKcDb4O8YJTgWI7OTjo=s96-c", "uid": "N7yCd3kCViMA0jD3eNuv5rqKxgy1", "account_id": "7bcc41a1-4c22-457c-a4de-750ca8f5d419"}'
 #"skill": "",
 # curl -X POST localhost:19818/v1/auth/verify-id-token \
 #     -H "Content-Type: application/json" \

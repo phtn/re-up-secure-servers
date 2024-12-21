@@ -42,6 +42,7 @@ func main() {
 	F := server.Group("/")
 	F.Get(api.Livez, api.ServerLivez)
 	F.Get(api.Readyz, api.ServerReadyz)
+	F.Post(api.OneTime, api.OneTimeAccess)
 	F.Post(api.VerifyAgentCodePath, api.VerifyAgentCode)
 
 	// AUTHENTICATED
