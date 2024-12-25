@@ -43,7 +43,7 @@ func main() {
 	F.Get(api.Livez, api.ServerLivez)
 	F.Get(api.Readyz, api.ServerReadyz)
 	F.Post(api.OneTime, api.OneTimeAccess)
-	F.Post(api.VerifyAgentCodePath, api.VerifyAgentCode)
+	F.Post(api.Activation, api.VerifyAgentCode)
 
 	// AUTHENTICATED
 	authGroup := server.Group(api.AuthPath, withAuth...)
@@ -53,6 +53,7 @@ func main() {
 	authGroup.Post(api.GetUserPath, api.GetUserInfo)
 	authGroup.Post(api.GetClaimsPath, api.GetClaims)
 	authGroup.Post(api.ActivateUserPath, api.ActivateUser)
+	authGroup.Post(api.VerifyAgentCodePath, api.VerifyAgentCode)
 
 	// WITH CLAIMS
 	claimsGroup := server.Group(api.ClaimsPath, withClaims...)
