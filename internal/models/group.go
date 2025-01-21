@@ -10,7 +10,7 @@ type Group struct {
 	GroupCode   string    `json:"group_code,omitempty"`
 	UID         string    `json:"uid,omitempty"`
 	PhotoURL    string    `json:"photo_url,omitempty"`
-	AddressId   string    `json:"address_id,omitempty"`
+	Address     string    `json:"address,omitempty"`
 	AccountId   uuid.UUID `json:"account_id,omitempty"`
 	Active      string    `json:"is_active,omitempty"`
 }

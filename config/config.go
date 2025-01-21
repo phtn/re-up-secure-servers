@@ -122,8 +122,8 @@ func initFirebase() *Firebase {
 // }
 
 func initPostgres() *ent.Client {
-	// dataSourceName := pdsn
-	dataSourceName := "postgres://xpriori:phtn458@localhost:5432/dpqb?sslmode=disable"
+	dataSourceName := pdsn
+	// dataSourceName := "postgres://xpriori:phtn458@localhost:5432/dpqb?sslmode=disable"
 	db, err := sql.Open("postgres", dataSourceName)
 	L.Fail("pq", "open", err)
 
